@@ -53,6 +53,7 @@ public partial class MainForm
                     PatientID = ds.GetSingleValueOrDefault(DicomTag.PatientID, ""),
                     AccessionNumber = ds.GetSingleValueOrDefault(DicomTag.AccessionNumber, ""),
                     StudyDate = ds.GetSingleValueOrDefault(DicomTag.StudyDate, ""),
+                    StudyTime = ds.GetSingleValueOrDefault(DicomTag.StudyTime, ""),
                     Modality = ds.GetSingleValueOrDefault(DicomTag.Modality, ""),
                     StudyInstanceUID = ds.GetSingleValueOrDefault(DicomTag.StudyInstanceUID, ""),
                     SeriesInstanceUID = ds.GetSingleValueOrDefault(DicomTag.SeriesInstanceUID, ""),

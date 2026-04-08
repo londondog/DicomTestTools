@@ -28,17 +28,18 @@ public partial class MainForm
         };
         split.Panel1.Controls.Add(BuildFilesGroup());
 
-        var rightPanel = new TableLayoutPanel
+        var tabs = new TabControl
         {
-            Dock = DockStyle.Fill,
-            RowCount = 2,
-            ColumnCount = 1
+            Dock = DockStyle.Fill
         };
-        rightPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 55f));
-        rightPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 45f));
-        rightPanel.Controls.Add(BuildDemographicsGroup(), 0, 0);
-        rightPanel.Controls.Add(BuildProcedureGroup(), 0, 1);
-        split.Panel2.Controls.Add(rightPanel);
+        tabs.TabPages.Add(new TabPage("Demographics") { Padding = new Padding(4) });
+        tabs.TabPages[0].Controls.Add(BuildDemographicsGroup());
+        tabs.TabPages.Add(new TabPage("Procedure") { Padding = new Padding(4) });
+        tabs.TabPages[1].Controls.Add(BuildProcedureGroup());
+        tabs.TabPages.Add(new TabPage("Lookup") { Padding = new Padding(4) });
+        tabs.TabPages[2].Controls.Add(BuildLookupTab());
+
+        split.Panel2.Controls.Add(tabs);
         outer.Controls.Add(split, 0, 1);
 
         // Set splitter and min sizes after the form has a real width
@@ -237,7 +238,7 @@ public partial class MainForm
         _txtStudyDate = new TextBox { PlaceholderText = "YYYYMMDD" };
         AddField("Study Date:", _txtStudyDate);
 
-        _txtStudyTime = new TextBox { PlaceholderText = "HHMMSS" };
+        _txtStudyTime = new TextBox { PlaceholderText = "HHMM" };
         AddField("Study Time:", _txtStudyTime);
 
         _txtStudyDesc = new TextBox { PlaceholderText = "Study description" };
@@ -315,7 +316,7 @@ public partial class MainForm
         }
 
         _cmbModality = new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList };
-        _cmbModality.Items.AddRange(new object[] { "", "CT", "MR", "US", "OPT", "CR", "DX", "MG", "NM", "PT", "RF", "XA", "ES", "SC", "OT" });
+        _cmbModality.Items.AddRange(new object[] { "", "CR", "CT", "DX", "ECG", "EP", "ES", "MG", "MR", "NM", "OPT", "OT", "PT", "RF", "SC", "US", "XA" });
         AddField("Modality:", _cmbModality);
 
         _txtProcedureDesc = new TextBox { PlaceholderText = "Procedure description" };
@@ -421,5 +422,127 @@ public partial class MainForm
 
         grp.Controls.Add(tbl);
         return grp;
+    }
+
+    private Control BuildLookupTab()
+    {
+        var root = new TableLayoutPanel
+        {
+            Dock = DockStyle.Fill,
+            RowCount = 5,
+            ColumnCount = 1,
+            Padding = new Padding(2)
+        };
+        root.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+        root.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+        root.RowStyles.Add(new RowStyle(SizeType.Percent, 44f));
+        root.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+        root.RowStyles.Add(new RowStyle(SizeType.Percent, 56f));
+
+        var connectionBar = new FlowLayoutPanel
+        {
+            Dock = DockStyle.Top,
+            AutoSize = true,
+            WrapContents = false
+        };
+        connectionBar.Controls.Add(MakeLabel("Connection String:"));
+        _txtLookupConnectionString = new TextBox
+        {
+            Width = 460,
+            PlaceholderText = "Data Source=localhost;Initial Catalog=Medcon;Integrated Security=True;TrustServerCertificate=True;",
+            Text = "Data Source=localhost;Initial Catalog=Medcon;Integrated Security=True;TrustServerCertificate=True;"
+        };
+        connectionBar.Controls.Add(_txtLookupConnectionString);
+        connectionBar.Controls.Add(MakeSpacer(6));
+        _chkLookupTrustServerCert = new CheckBox
+        {
+            Text = "Trust Server Cert",
+            AutoSize = true,
+            Checked = true
+        };
+        connectionBar.Controls.Add(_chkLookupTrustServerCert);
+        connectionBar.Controls.Add(MakeSpacer(6));
+        _btnLookupTestConnection = new Button { Text = "Test", Width = 64, Height = 26 };
+        connectionBar.Controls.Add(_btnLookupTestConnection);
+        connectionBar.Controls.Add(MakeSpacer(8));
+        connectionBar.Controls.Add(MakeLabel("Days:"));
+        _numLookupDays = new NumericUpDown { Minimum = 1, Maximum = 60, Value = 7, Width = 58 };
+        connectionBar.Controls.Add(_numLookupDays);
+        root.Controls.Add(connectionBar, 0, 0);
+
+        var searchBar = new FlowLayoutPanel
+        {
+            Dock = DockStyle.Top,
+            AutoSize = true,
+            WrapContents = false
+        };
+        searchBar.Controls.Add(MakeLabel("Patient ID:"));
+        _txtLookupPatientId = new TextBox { Width = 120, PlaceholderText = "MRN" };
+        searchBar.Controls.Add(_txtLookupPatientId);
+        searchBar.Controls.Add(MakeSpacer(8));
+        searchBar.Controls.Add(MakeLabel("Name:"));
+        _txtLookupPatientName = new TextBox { Width = 170, PlaceholderText = "Last, First or partial" };
+        searchBar.Controls.Add(_txtLookupPatientName);
+        searchBar.Controls.Add(MakeSpacer(10));
+        _btnLookupPatients = new Button { Text = "Find Patients", Width = 104, Height = 28 };
+        _btnLookupOrders = new Button { Text = "Find Orders", Width = 94, Height = 28 };
+        searchBar.Controls.Add(_btnLookupPatients);
+        searchBar.Controls.Add(MakeSpacer(4));
+        searchBar.Controls.Add(_btnLookupOrders);
+        root.Controls.Add(searchBar, 0, 1);
+
+        _dgvLookupPatients = CreateLookupGrid();
+        _dgvLookupPatients.Columns.Add(new DataGridViewTextBoxColumn { Name = "PatientId", HeaderText = "Patient ID", DataPropertyName = "PatientId", Width = 90 });
+        _dgvLookupPatients.Columns.Add(new DataGridViewTextBoxColumn { Name = "FullName", HeaderText = "Name", DataPropertyName = "FullName", Width = 180 });
+        _dgvLookupPatients.Columns.Add(new DataGridViewTextBoxColumn { Name = "DateOfBirth", HeaderText = "DOB", DataPropertyName = "DateOfBirth", Width = 90, DefaultCellStyle = new DataGridViewCellStyle { Format = "yyyy-MM-dd" } });
+        _dgvLookupPatients.Columns.Add(new DataGridViewTextBoxColumn { Name = "Sex", HeaderText = "Sex", DataPropertyName = "Sex", Width = 50 });
+        _dgvLookupPatients.Columns.Add(new DataGridViewTextBoxColumn { Name = "Age", HeaderText = "Age", DataPropertyName = "Age", Width = 50 });
+        root.Controls.Add(_dgvLookupPatients, 0, 2);
+
+        var applyBar = new FlowLayoutPanel
+        {
+            Dock = DockStyle.Top,
+            AutoSize = true,
+            WrapContents = false
+        };
+        _btnApplySelectedPatient = new Button { Text = "Apply Selected Patient", Width = 150, Height = 28 };
+        _btnApplySelectedOrder = new Button { Text = "Apply Selected Order", Width = 140, Height = 28 };
+        _btnApplySelectedBoth = new Button { Text = "Apply Both", Width = 88, Height = 28, BackColor = Color.FromArgb(0, 120, 212), ForeColor = Color.White, FlatStyle = FlatStyle.Flat };
+        applyBar.Controls.Add(_btnApplySelectedPatient);
+        applyBar.Controls.Add(MakeSpacer(4));
+        applyBar.Controls.Add(_btnApplySelectedOrder);
+        applyBar.Controls.Add(MakeSpacer(4));
+        applyBar.Controls.Add(_btnApplySelectedBoth);
+        root.Controls.Add(applyBar, 0, 3);
+
+        _dgvLookupOrders = CreateLookupGrid();
+        _dgvLookupOrders.Columns.Add(new DataGridViewTextBoxColumn { Name = "AccessionNumber", HeaderText = "Accession", DataPropertyName = "AccessionNumber", Width = 110 });
+        _dgvLookupOrders.Columns.Add(new DataGridViewTextBoxColumn { Name = "PatientId", HeaderText = "Patient ID", DataPropertyName = "PatientId", Width = 90 });
+        _dgvLookupOrders.Columns.Add(new DataGridViewTextBoxColumn { Name = "PatientName", HeaderText = "Name", DataPropertyName = "PatientName", Width = 150 });
+        _dgvLookupOrders.Columns.Add(new DataGridViewTextBoxColumn { Name = "StartTime", HeaderText = "Start Time", DataPropertyName = "StartTime", Width = 130, DefaultCellStyle = new DataGridViewCellStyle { Format = "yyyy-MM-dd HH:mm" } });
+        _dgvLookupOrders.Columns.Add(new DataGridViewTextBoxColumn { Name = "ScheduledProcedureStepId", HeaderText = "Procedure", DataPropertyName = "ScheduledProcedureStepId", Width = 140 });
+        _dgvLookupOrders.Columns.Add(new DataGridViewTextBoxColumn { Name = "ProcedureCode", HeaderText = "Procedure Code", DataPropertyName = "ProcedureCode", Width = 140 });
+        _dgvLookupOrders.Columns.Add(new DataGridViewTextBoxColumn { Name = "WorkflowStatus", HeaderText = "Status", DataPropertyName = "WorkflowStatus", Width = 110 });
+        _dgvLookupOrders.Columns.Add(new DataGridViewTextBoxColumn { Name = "Gender", HeaderText = "Gender", DataPropertyName = "Gender", Width = 70 });
+        root.Controls.Add(_dgvLookupOrders, 0, 4);
+
+        return root;
+    }
+
+    private static DataGridView CreateLookupGrid()
+    {
+        return new DataGridView
+        {
+            Dock = DockStyle.Fill,
+            ReadOnly = true,
+            MultiSelect = false,
+            SelectionMode = DataGridViewSelectionMode.FullRowSelect,
+            AutoGenerateColumns = false,
+            AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill,
+            AllowUserToAddRows = false,
+            AllowUserToDeleteRows = false,
+            AllowUserToResizeRows = false,
+            RowHeadersVisible = false
+        };
     }
 }

@@ -49,7 +49,7 @@ public partial class MainForm
         _cmbSex.SelectedItem = _cmbSex.Items.Contains(entry.Sex) ? entry.Sex : "";
         _txtAccession.Text = entry.AccessionNumber;
         _txtStudyDate.Text = entry.StudyDate;
-        _txtStudyTime.Text = "";
+        _txtStudyTime.Text = entry.StudyTime;
         _txtStudyDesc.Text = entry.StudyDescription;
 
         // Populate procedure fields too
@@ -89,10 +89,34 @@ public partial class MainForm
         var parsed = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         foreach (var line in text.Split('\n'))
         {
-            var colon = line.IndexOf(':');
-            if (colon < 0) continue;
-            var key = line[..colon].Trim().Replace(" ", "").Replace("-", "");
-            var val = line[(colon + 1)..].Trim();
+            var trimmed = line.Trim();
+            if (string.IsNullOrEmpty(trimmed)) continue;
+
+            string key;
+            string val;
+
+            var tabParts = trimmed.Split('\t', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            if (tabParts.Length >= 3)
+            {
+                // Supports common DICOM dump format: (gggg,eeee) <tab> Name <tab> Value
+                key = tabParts[1];
+                val = tabParts[2];
+            }
+            else if (tabParts.Length == 2)
+            {
+                key = tabParts[0];
+                val = tabParts[1];
+            }
+            else
+            {
+                var colon = trimmed.IndexOf(':');
+                if (colon < 0) continue;
+                key = trimmed[..colon];
+                val = trimmed[(colon + 1)..];
+            }
+
+            key = key.Trim().Replace(" ", "").Replace("-", "");
+            val = val.Trim();
             parsed[key] = val;
         }
 
@@ -152,7 +176,7 @@ public partial class MainForm
         _cmbSex.SelectedItem = rng.Next(2) == 0 ? "M" : "F";
         _txtAccession.Text = GenerateAccession(rng);
         _txtStudyDate.Text = DateTime.Today.ToString("yyyyMMdd");
-        _txtStudyTime.Text = DateTime.Now.ToString("HHmmss");
+        _txtStudyTime.Text = DateTime.Now.ToString("HHmm");
         _txtStudyDesc.Text = StudyDescriptions[rng.Next(StudyDescriptions.Length)];
 
         Log($"[INFO] Randomized: {_txtPatientName.Text} | ID: {_txtPatientID.Text} | DOB: {_txtDOB.Text}", Color.LightGreen);

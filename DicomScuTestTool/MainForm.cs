@@ -45,6 +45,21 @@ public partial class MainForm : Form
     private CheckBox _chkNewSeriesUID = null!;
     private CheckBox _chkNewSOPUID = null!;
 
+    // ── Lookup (Patient/Orders) ───────────────────────────────
+    private TextBox _txtLookupConnectionString = null!;
+    private CheckBox _chkLookupTrustServerCert = null!;
+    private NumericUpDown _numLookupDays = null!;
+    private TextBox _txtLookupPatientId = null!;
+    private TextBox _txtLookupPatientName = null!;
+    private Button _btnLookupTestConnection = null!;
+    private Button _btnLookupPatients = null!;
+    private Button _btnLookupOrders = null!;
+    private Button _btnApplySelectedPatient = null!;
+    private Button _btnApplySelectedOrder = null!;
+    private Button _btnApplySelectedBoth = null!;
+    private DataGridView _dgvLookupPatients = null!;
+    private DataGridView _dgvLookupOrders = null!;
+
     // ── Actions ─────────────────────────────────────────────────
     private Button _btnSendAll = null!;
     private Button _btnSendSelected = null!;
@@ -88,6 +103,17 @@ public partial class MainForm : Form
         _btnCopyTemplate.Click += (_, _) => CopyDemographicsTemplate();
         _btnPasteAll.Click += (_, _) => PasteDemographics();
         _btnLoadFromFile.Click += BtnLoadFromFile_Click;
+        _btnLookupTestConnection.Click += async (_, _) => await TestLookupConnectionAsync();
+        _btnLookupPatients.Click += async (_, _) => await SearchPatientsAsync();
+        _btnLookupOrders.Click += async (_, _) => await SearchOrdersAsync();
+        _chkLookupTrustServerCert.CheckedChanged += (_, _) => UpdateLookupTrustServerCertificateInConnectionString();
+        _btnApplySelectedPatient.Click += (_, _) => ApplySelectedPatientToDemographics();
+        _btnApplySelectedOrder.Click += (_, _) => ApplySelectedOrderToDemographics();
+        _btnApplySelectedBoth.Click += (_, _) =>
+        {
+            ApplySelectedPatientToDemographics();
+            ApplySelectedOrderToDemographics();
+        };
         _btnSendAll.Click += async (_, _) => await SendAsync(sendAll: true);
         _btnSendSelected.Click += async (_, _) => await SendAsync(sendAll: false);
         _btnCancelSend.Click += (_, _) => _cts?.Cancel();

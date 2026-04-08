@@ -18,6 +18,7 @@
 
   <ItemGroup>
     <PackageReference Include="fo-dicom" Version="5.2.5" />
+    <PackageReference Include="Microsoft.Data.SqlClient" Version="6.0.2" />
   </ItemGroup>
 
   <ItemGroup>

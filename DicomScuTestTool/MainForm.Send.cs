@@ -1,5 +1,7 @@
 using System.Drawing;
+using System.Globalization;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using FellowOakDicom;
 using FellowOakDicom.Network;
 using FellowOakDicom.Network.Client;
@@ -242,9 +244,68 @@ public partial class MainForm
         if (!string.IsNullOrWhiteSpace(demo.DOB))            ds.AddOrUpdate(DicomTag.PatientBirthDate, demo.DOB);
         if (!string.IsNullOrWhiteSpace(demo.Sex))            ds.AddOrUpdate(DicomTag.PatientSex, demo.Sex);
         if (!string.IsNullOrWhiteSpace(demo.AccessionNumber)) ds.AddOrUpdate(DicomTag.AccessionNumber, demo.AccessionNumber);
-        if (!string.IsNullOrWhiteSpace(demo.StudyDate))        ds.AddOrUpdate(DicomTag.StudyDate, demo.StudyDate);
-        if (!string.IsNullOrWhiteSpace(demo.StudyTime))        ds.AddOrUpdate(DicomTag.StudyTime, demo.StudyTime);
+        var normalizedStudyDate = NormalizeStudyDate(demo.StudyDate);
+        if (!string.IsNullOrWhiteSpace(normalizedStudyDate))
+        {
+            ds.AddOrUpdate(DicomTag.StudyDate, normalizedStudyDate);
+            ds.AddOrUpdate(DicomTag.SeriesDate, normalizedStudyDate);
+        }
+
+        var normalizedStudyTime = NormalizeStudyTime(demo.StudyTime);
+        if (!string.IsNullOrWhiteSpace(normalizedStudyTime))
+        {
+            ds.AddOrUpdate(DicomTag.StudyTime, normalizedStudyTime);
+            ds.AddOrUpdate(DicomTag.SeriesTime, normalizedStudyTime);
+        }
+
         if (!string.IsNullOrWhiteSpace(demo.StudyDescription)) ds.AddOrUpdate(DicomTag.StudyDescription, demo.StudyDescription);
+    }
+
+    private static string NormalizeStudyTime(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return "";
+
+        var digits = Regex.Replace(value, "[^0-9]", "");
+        if (digits.Length < 4) return "";
+
+        // Prefer HHMMSS for broader viewer compatibility while accepting HHMM input.
+        if (digits.Length >= 6)
+            return digits[..6];
+
+        return digits[..4] + "00";
+    }
+
+    private static string NormalizeStudyDate(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return "";
+
+        var digits = Regex.Replace(value, "[^0-9]", "");
+        if (digits.Length >= 8 && DateTime.TryParseExact(
+                digits[..8], "yyyyMMdd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var parsedExact))
+        {
+            return parsedExact.ToString("yyyyMMdd");
+        }
+
+        var acceptedFormats = new[]
+        {
+            "d-MMMM-yyyy", "d-MMM-yyyy", "d-M-yyyy",
+            "dd-MMMM-yyyy", "dd-MMM-yyyy", "dd-MM-yyyy",
+            "yyyy-MM-dd", "yyyy/M/d", "yyyy/MM/dd",
+            "M/d/yyyy", "MM/dd/yyyy", "d/M/yyyy", "dd/MM/yyyy"
+        };
+
+        if (DateTime.TryParseExact(value.Trim(), acceptedFormats, CultureInfo.InvariantCulture,
+            DateTimeStyles.AllowWhiteSpaces, out var parsed))
+        {
+            return parsed.ToString("yyyyMMdd");
+        }
+
+        if (DateTime.TryParse(value.Trim(), CultureInfo.CurrentCulture, DateTimeStyles.AllowWhiteSpaces, out parsed))
+        {
+            return parsed.ToString("yyyyMMdd");
+        }
+
+        return "";
     }
 
     private static void ApplyProcedure(
@@ -303,6 +364,10 @@ public partial class MainForm
             _txtCalledAET.Text = s.CalledAET;
             _chkOverride.Checked = s.OverrideDemographics;
             _chkOverrideProcedure.Checked = s.OverrideProcedure;
+            _txtLookupConnectionString.Text = s.LookupConnectionString;
+            _numLookupDays.Value = Math.Clamp(s.LookupRangeDays, (int)_numLookupDays.Minimum, (int)_numLookupDays.Maximum);
+            _chkLookupTrustServerCert.Checked = s.LookupTrustServerCertificate;
+            UpdateLookupTrustServerCertificateInConnectionString();
         }
         catch { /* ignore corrupt settings */ }
     }
@@ -318,7 +383,10 @@ public partial class MainForm
                 CallingAET = _txtCallingAET.Text.Trim(),
                 CalledAET = _txtCalledAET.Text.Trim(),
                 OverrideDemographics = _chkOverride.Checked,
-                OverrideProcedure = _chkOverrideProcedure.Checked
+                OverrideProcedure = _chkOverrideProcedure.Checked,
+                LookupConnectionString = _txtLookupConnectionString.Text.Trim(),
+                LookupRangeDays = (int)_numLookupDays.Value,
+                LookupTrustServerCertificate = _chkLookupTrustServerCert.Checked
             };
             File.WriteAllText(_settingsFile, JsonSerializer.Serialize(s, new JsonSerializerOptions { WriteIndented = true }));
         }
