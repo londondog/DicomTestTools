@@ -9,17 +9,19 @@ public partial class MainForm
         var outer = new TableLayoutPanel
         {
             Dock = DockStyle.Fill,
-            RowCount = 4,
+            RowCount = 5,
             ColumnCount = 1,
             Padding = new Padding(6, 4, 6, 4)
         };
+        outer.RowStyles.Add(new RowStyle(SizeType.AutoSize));        // menu
         outer.RowStyles.Add(new RowStyle(SizeType.AutoSize));        // connection
         outer.RowStyles.Add(new RowStyle(SizeType.Percent, 100f));   // files + demographics
         outer.RowStyles.Add(new RowStyle(SizeType.AutoSize));        // action bar
         outer.RowStyles.Add(new RowStyle(SizeType.Absolute, 190f));  // log
         Controls.Add(outer);
 
-        outer.Controls.Add(BuildConnectionGroup(), 0, 0);
+        outer.Controls.Add(BuildMainMenu(), 0, 0);
+        outer.Controls.Add(BuildConnectionGroup(), 0, 1);
 
         var split = new SplitContainer
         {
@@ -32,7 +34,7 @@ public partial class MainForm
         {
             Dock = DockStyle.Fill
         };
-        tabs.TabPages.Add(new TabPage("Demographics") { Padding = new Padding(4) });
+        tabs.TabPages.Add(new TabPage("Demographics and Study") { Padding = new Padding(4) });
         tabs.TabPages[0].Controls.Add(BuildDemographicsGroup());
         tabs.TabPages.Add(new TabPage("Procedure") { Padding = new Padding(4) });
         tabs.TabPages[1].Controls.Add(BuildProcedureGroup());
@@ -40,7 +42,7 @@ public partial class MainForm
         tabs.TabPages[2].Controls.Add(BuildLookupTab());
 
         split.Panel2.Controls.Add(tabs);
-        outer.Controls.Add(split, 0, 1);
+        outer.Controls.Add(split, 0, 2);
 
         // Set splitter and min sizes after the form has a real width
         Load += (_, _) =>
@@ -50,8 +52,25 @@ public partial class MainForm
             split.SplitterDistance = (int)(ClientSize.Width * 0.6);
         };
 
-        outer.Controls.Add(BuildActionBar(), 0, 2);
-        outer.Controls.Add(BuildLogGroup(), 0, 3);
+        outer.Controls.Add(BuildActionBar(), 0, 3);
+        outer.Controls.Add(BuildLogGroup(), 0, 4);
+    }
+
+    private MenuStrip BuildMainMenu()
+    {
+        var menu = new MenuStrip
+        {
+            Dock = DockStyle.Fill
+        };
+
+        var help = new ToolStripMenuItem("Help");
+        var about = new ToolStripMenuItem("About");
+        about.Click += (_, _) => ShowAboutDialog();
+        help.DropDownItems.Add(about);
+
+        menu.Items.Add(help);
+        MainMenuStrip = menu;
+        return menu;
     }
 
     private GroupBox BuildConnectionGroup()
@@ -154,7 +173,7 @@ public partial class MainForm
     {
         var grp = new GroupBox
         {
-            Text = "Demographics Override",
+            Text = "Demographics and Study Override",
             Dock = DockStyle.Fill,
             Padding = new Padding(8, 4, 8, 6)
         };
@@ -244,6 +263,10 @@ public partial class MainForm
         _txtStudyDesc = new TextBox { PlaceholderText = "Study description" };
         AddField("Study Desc.:", _txtStudyDesc);
 
+        _cmbModality = new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList };
+        _cmbModality.Items.AddRange(new object[] { "", "CR", "CT", "DX", "ECG", "EP", "ES", "MG", "MR", "NM", "OPT", "OT", "PT", "RF", "SC", "US", "XA" });
+        AddField("Modality:", _cmbModality);
+
         tbl.RowStyles.Add(new RowStyle(SizeType.Absolute, 8f));
         tbl.Controls.Add(new Label(), 0, row); row++;
 
@@ -299,28 +322,6 @@ public partial class MainForm
         tbl.Controls.Add(_chkOverrideProcedure, 0, row);
         tbl.SetColumnSpan(_chkOverrideProcedure, 2);
         row++;
-
-        void AddField(string label, Control ctrl)
-        {
-            tbl.RowStyles.Add(new RowStyle(SizeType.AutoSize));
-            tbl.Controls.Add(new Label
-            {
-                Text = label,
-                Dock = DockStyle.Fill,
-                TextAlign = ContentAlignment.MiddleRight,
-                Padding = new Padding(0, 0, 4, 0)
-            }, 0, row);
-            ctrl.Dock = DockStyle.Fill;
-            tbl.Controls.Add(ctrl, 1, row);
-            row++;
-        }
-
-        _cmbModality = new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList };
-        _cmbModality.Items.AddRange(new object[] { "", "CR", "CT", "DX", "ECG", "EP", "ES", "MG", "MR", "NM", "OPT", "OT", "PT", "RF", "SC", "US", "XA" });
-        AddField("Modality:", _cmbModality);
-
-        _txtProcedureDesc = new TextBox { PlaceholderText = "Procedure description" };
-        AddField("Procedure Desc.:", _txtProcedureDesc);
 
         // Study UID row with Generate button
         tbl.RowStyles.Add(new RowStyle(SizeType.AutoSize));
@@ -477,18 +478,25 @@ public partial class MainForm
             WrapContents = false
         };
         searchBar.Controls.Add(MakeLabel("Patient ID:"));
-        _txtLookupPatientId = new TextBox { Width = 120, PlaceholderText = "MRN" };
+        _txtLookupPatientId = new TextBox { Width = 110, PlaceholderText = "MRN" };
         searchBar.Controls.Add(_txtLookupPatientId);
-        searchBar.Controls.Add(MakeSpacer(8));
+        searchBar.Controls.Add(MakeSpacer(6));
         searchBar.Controls.Add(MakeLabel("Name:"));
-        _txtLookupPatientName = new TextBox { Width = 170, PlaceholderText = "Last, First or partial" };
+        _txtLookupPatientName = new TextBox { Width = 150, PlaceholderText = "Last, First or partial" };
         searchBar.Controls.Add(_txtLookupPatientName);
+        searchBar.Controls.Add(MakeSpacer(6));
+        searchBar.Controls.Add(MakeLabel("Accession:"));
+        _txtLookupAccession = new TextBox { Width = 110, PlaceholderText = "Accession No." };
+        searchBar.Controls.Add(_txtLookupAccession);
         searchBar.Controls.Add(MakeSpacer(10));
         _btnLookupPatients = new Button { Text = "Find Patients", Width = 104, Height = 28 };
         _btnLookupOrders = new Button { Text = "Find Orders", Width = 94, Height = 28 };
+        _btnLookupProcedures = new Button { Text = "Find Procedures", Width = 112, Height = 28 };
         searchBar.Controls.Add(_btnLookupPatients);
         searchBar.Controls.Add(MakeSpacer(4));
         searchBar.Controls.Add(_btnLookupOrders);
+        searchBar.Controls.Add(MakeSpacer(4));
+        searchBar.Controls.Add(_btnLookupProcedures);
         root.Controls.Add(searchBar, 0, 1);
 
         _dgvLookupPatients = CreateLookupGrid();
@@ -508,10 +516,13 @@ public partial class MainForm
         _btnApplySelectedPatient = new Button { Text = "Apply Selected Patient", Width = 150, Height = 28 };
         _btnApplySelectedOrder = new Button { Text = "Apply Selected Order", Width = 140, Height = 28 };
         _btnApplySelectedBoth = new Button { Text = "Apply Both", Width = 88, Height = 28, BackColor = Color.FromArgb(0, 120, 212), ForeColor = Color.White, FlatStyle = FlatStyle.Flat };
+        _chkApplyNewStudyUID = new CheckBox { Text = "New Study UID", AutoSize = true, Checked = true };
         applyBar.Controls.Add(_btnApplySelectedPatient);
         applyBar.Controls.Add(MakeSpacer(4));
         applyBar.Controls.Add(_btnApplySelectedOrder);
-        applyBar.Controls.Add(MakeSpacer(4));
+        applyBar.Controls.Add(MakeSpacer(8));
+        applyBar.Controls.Add(_chkApplyNewStudyUID);
+        applyBar.Controls.Add(MakeSpacer(16));
         applyBar.Controls.Add(_btnApplySelectedBoth);
         root.Controls.Add(applyBar, 0, 3);
 

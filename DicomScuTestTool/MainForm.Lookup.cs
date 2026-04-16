@@ -70,6 +70,7 @@ public partial class MainForm
 
     private async Task SearchPatientsAsync()
     {
+        const int maxPatientResults = 100;
         const string query = @"
             SELECT TOP (@MaxResults)
                 unique_id_str,
@@ -102,7 +103,7 @@ public partial class MainForm
             await connection.OpenAsync();
 
             await using var command = new SqlCommand(query, connection);
-            command.Parameters.AddWithValue("@MaxResults", 100);
+            command.Parameters.AddWithValue("@MaxResults", maxPatientResults);
             command.Parameters.AddWithValue("@PatientIdLike", $"%{patientIdSearch}%");
             command.Parameters.AddWithValue("@NameLike", $"%{patientNameSearch}%");
 
@@ -124,7 +125,7 @@ public partial class MainForm
                 });
             }
 
-            _dgvLookupPatients.DataSource = results;
+            _dgvLookupPatients.DataSource = results.Take(maxPatientResults).ToList();
             Log($"[LOOKUP] Found {results.Count} patient(s).", Color.Cyan);
         }
         catch (Exception ex)
@@ -161,6 +162,7 @@ public partial class MainForm
             WHERE T.workflow_status_id IN ('0', '7')
               AND f.unique_id_str LIKE @PatientIdLike
               AND f.patient_name LIKE @NameLike
+              AND T.accession_number LIKE @AccessionLike
               AND CAST(A.start_time AS DATE) BETWEEN @DateStart AND @DateEnd
             ORDER BY A.start_time DESC";
 
@@ -184,9 +186,12 @@ public partial class MainForm
             await connection.OpenAsync();
 
             await using var command = new SqlCommand(query, connection);
+            var accessionSearch = _txtLookupAccession.Text.Trim();
+
             command.Parameters.AddWithValue("@MaxResults", 200);
             command.Parameters.AddWithValue("@PatientIdLike", $"%{patientIdSearch}%");
             command.Parameters.AddWithValue("@NameLike", $"%{patientNameSearch}%");
+            command.Parameters.AddWithValue("@AccessionLike", $"%{accessionSearch}%");
             command.Parameters.AddWithValue("@DateStart", startDate.Date);
             command.Parameters.AddWithValue("@DateEnd", endDate.Date);
 
@@ -225,6 +230,98 @@ public partial class MainForm
         finally
         {
             _btnLookupOrders.Enabled = true;
+        }
+    }
+
+    private async Task SearchProceduresAsync()
+    {
+        const string query = @"
+            SELECT TOP (@MaxResults)
+                f.unique_id_str AS PatientId,
+                f.last_name AS LastName,
+                f.first_name AS FirstName,
+                G.gender_name AS Gender,
+                T.scheduled_Procedure_step_id AS ScheduledProcedureStepId,
+                PT.code AS ProcedureCode,
+                T.accession_number AS AccessionNumber,
+                T.visit_id AS VisitId,
+                A.start_time AS StartTime,
+                W.workflow_status_name AS WorkflowStatus
+            FROM T_TCS_PROCEDURE T
+                JOIN T_SCHED_ALLOCATION A ON A.allocation_id = T.allocation_id
+                JOIN files f ON f.file_id = T.patient_id
+                JOIN T_TCS_WORKFLOW_STATUS W ON W.workflow_status_id = T.workflow_status_id
+                JOIN T_TCS_GENDER G ON f.gender_id = G.gender_id
+                LEFT JOIN T_TCS_PROCEDURE_TYPE PT ON PT.procedure_type_id = T.procedure_type_id
+            WHERE f.unique_id_str LIKE @PatientIdLike
+              AND f.patient_name LIKE @NameLike
+              AND T.accession_number LIKE @AccessionLike
+              AND CAST(A.start_time AS DATE) BETWEEN @DateStart AND @DateEnd
+            ORDER BY A.start_time DESC";
+
+        var connectionString = _txtLookupConnectionString.Text.Trim();
+        if (string.IsNullOrWhiteSpace(connectionString))
+        {
+            MessageBox.Show("Enter a SQL Server connection string first.", "Lookup", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            return;
+        }
+
+        _btnLookupProcedures.Enabled = false;
+
+        try
+        {
+            var patientIdSearch = _txtLookupPatientId.Text.Trim();
+            var patientNameSearch = _txtLookupPatientName.Text.Trim();
+            var accessionSearch = _txtLookupAccession.Text.Trim();
+            var endDate = DateTime.Today;
+            var startDate = endDate.AddDays(-(int)_numLookupDays.Value);
+
+            await using var connection = new SqlConnection(connectionString);
+            await connection.OpenAsync();
+
+            await using var command = new SqlCommand(query, connection);
+            command.Parameters.AddWithValue("@MaxResults", 200);
+            command.Parameters.AddWithValue("@PatientIdLike", $"%{patientIdSearch}%");
+            command.Parameters.AddWithValue("@NameLike", $"%{patientNameSearch}%");
+            command.Parameters.AddWithValue("@AccessionLike", $"%{accessionSearch}%");
+            command.Parameters.AddWithValue("@DateStart", startDate.Date);
+            command.Parameters.AddWithValue("@DateEnd", endDate.Date);
+
+            var results = new List<OrderLookupResult>();
+            await using var reader = await command.ExecuteReaderAsync();
+
+            while (await reader.ReadAsync())
+            {
+                var firstName = reader["FirstName"]?.ToString() ?? string.Empty;
+                var lastName = reader["LastName"]?.ToString() ?? string.Empty;
+
+                results.Add(new OrderLookupResult
+                {
+                    PatientId = reader["PatientId"]?.ToString() ?? string.Empty,
+                    PatientName = $"{lastName}, {firstName}".Trim(' ', ','),
+                    FirstName = firstName,
+                    LastName = lastName,
+                    Gender = reader["Gender"]?.ToString() ?? string.Empty,
+                    ScheduledProcedureStepId = reader["ScheduledProcedureStepId"]?.ToString() ?? string.Empty,
+                    ProcedureCode = reader["ProcedureCode"]?.ToString() ?? string.Empty,
+                    AccessionNumber = reader["AccessionNumber"]?.ToString() ?? string.Empty,
+                    VisitId = reader["VisitId"] as int? ?? 0,
+                    StartTime = reader["StartTime"] as DateTime?,
+                    WorkflowStatus = reader["WorkflowStatus"]?.ToString() ?? string.Empty
+                });
+            }
+
+            _dgvLookupOrders.DataSource = results;
+            Log($"[LOOKUP] Found {results.Count} procedure(s) from {startDate:yyyy-MM-dd} to {endDate:yyyy-MM-dd} (all statuses).", Color.Cyan);
+        }
+        catch (Exception ex)
+        {
+            Log($"[LOOKUP] Procedure search failed: {ex.Message}", Color.OrangeRed);
+            MessageBox.Show($"Procedure search failed:\n{ex.Message}", "Lookup", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
+        finally
+        {
+            _btnLookupProcedures.Enabled = true;
         }
     }
 
@@ -292,13 +389,18 @@ public partial class MainForm
         if (!string.IsNullOrWhiteSpace(procText))
         {
             _txtStudyDesc.Text = procText;
-            _txtProcedureDesc.Text = procText;
         }
 
         var mappedModality = GuessModality(order.ProcedureCode, order.ScheduledProcedureStepId);
         if (!string.IsNullOrWhiteSpace(mappedModality) && _cmbModality.Items.Contains(mappedModality))
         {
             _cmbModality.SelectedItem = mappedModality;
+        }
+
+        if (_chkApplyNewStudyUID.Checked)
+        {
+            _chkOverrideProcedure.Checked = true;
+            _chkNewStudyUID.Checked = true;
         }
 
         Log($"[LOOKUP] Applied order {order.AccessionNumber} to override fields.", Color.LightGreen);
