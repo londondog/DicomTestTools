@@ -28,19 +28,38 @@ public partial class MainForm
         var outer = new TableLayoutPanel
         {
             Dock = DockStyle.Fill,
-            RowCount = 3,
+            RowCount = 4,
             ColumnCount = 1,
             Padding = new Padding(6, 4, 6, 4)
         };
+        outer.RowStyles.Add(new RowStyle(SizeType.AutoSize));        // menu
         outer.RowStyles.Add(new RowStyle(SizeType.AutoSize));        // connection
         outer.RowStyles.Add(new RowStyle(SizeType.Percent, 100f));   // tabs
         outer.RowStyles.Add(new RowStyle(SizeType.Absolute, 200f));  // log
 
-        outer.Controls.Add(BuildConnectionGroup(), 0, 0);
-        outer.Controls.Add(BuildTabControl(), 0, 1);
-        outer.Controls.Add(BuildLogGroup(), 0, 2);
+        outer.Controls.Add(BuildMainMenu(), 0, 0);
+        outer.Controls.Add(BuildConnectionGroup(), 0, 1);
+        outer.Controls.Add(BuildTabControl(), 0, 2);
+        outer.Controls.Add(BuildLogGroup(), 0, 3);
 
         Controls.Add(outer);
+    }
+
+    private MenuStrip BuildMainMenu()
+    {
+        var menu = new MenuStrip
+        {
+            Dock = DockStyle.Fill
+        };
+
+        var help = new ToolStripMenuItem("Help");
+        var about = new ToolStripMenuItem("About");
+        about.Click += (_, _) => ShowAboutDialog();
+        help.DropDownItems.Add(about);
+
+        menu.Items.Add(help);
+        MainMenuStrip = menu;
+        return menu;
     }
 
     private GroupBox BuildConnectionGroup()

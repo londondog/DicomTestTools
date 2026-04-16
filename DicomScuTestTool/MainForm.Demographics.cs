@@ -193,7 +193,7 @@ public partial class MainForm
         foreach (Control c in new Control[]
         {
             _txtPatientName, _txtPatientID, _txtDOB, _cmbSex,
-            _txtAccession, _txtStudyDate, _txtStudyTime, _txtStudyDesc,
+            _txtAccession, _txtStudyDate, _txtStudyTime, _txtStudyDesc, _cmbModality,
             _btnRandomize, _btnLoadFromFile
         })
         {
@@ -205,7 +205,6 @@ public partial class MainForm
     {
         foreach (Control c in new Control[]
         {
-            _cmbModality, _txtProcedureDesc,
             _txtStudyUID, _txtSeriesUID,
             _chkNewStudyUID, _chkNewSeriesUID, _chkNewSOPUID
         })

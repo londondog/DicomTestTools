@@ -28,14 +28,13 @@ public class DemographicsSnapshot
     public string StudyDate { get; set; } = "";
     public string StudyTime { get; set; } = "";
     public string StudyDescription { get; set; } = "";
+    public string Modality { get; set; } = "";
 }
 
 public class ProcedureSnapshot
 {
     public string StudyUID { get; set; } = "";
     public string SeriesUID { get; set; } = "";
-    public string Modality { get; set; } = "";
-    public string ProcedureDescription { get; set; } = "";
     public bool GenerateNewStudyUID { get; set; }
     public bool GenerateNewSeriesUID { get; set; }
     public bool GenerateNewSOPUID { get; set; }
