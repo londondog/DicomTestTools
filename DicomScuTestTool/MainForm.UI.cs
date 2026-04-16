@@ -430,15 +430,16 @@ public partial class MainForm
         var root = new TableLayoutPanel
         {
             Dock = DockStyle.Fill,
-            RowCount = 5,
+            RowCount = 6,
             ColumnCount = 1,
             Padding = new Padding(2)
         };
-        root.RowStyles.Add(new RowStyle(SizeType.AutoSize));
-        root.RowStyles.Add(new RowStyle(SizeType.AutoSize));
-        root.RowStyles.Add(new RowStyle(SizeType.Percent, 44f));
-        root.RowStyles.Add(new RowStyle(SizeType.AutoSize));
-        root.RowStyles.Add(new RowStyle(SizeType.Percent, 56f));
+        root.RowStyles.Add(new RowStyle(SizeType.AutoSize));  // connection
+        root.RowStyles.Add(new RowStyle(SizeType.AutoSize));  // search fields
+        root.RowStyles.Add(new RowStyle(SizeType.AutoSize));  // find buttons
+        root.RowStyles.Add(new RowStyle(SizeType.Percent, 44f));  // patient grid
+        root.RowStyles.Add(new RowStyle(SizeType.AutoSize));  // apply bar
+        root.RowStyles.Add(new RowStyle(SizeType.Percent, 56f));  // orders grid
 
         var connectionBar = new FlowLayoutPanel
         {
@@ -488,16 +489,18 @@ public partial class MainForm
         searchBar.Controls.Add(MakeLabel("Accession:"));
         _txtLookupAccession = new TextBox { Width = 110, PlaceholderText = "Accession No." };
         searchBar.Controls.Add(_txtLookupAccession);
-        searchBar.Controls.Add(MakeSpacer(10));
+        root.Controls.Add(searchBar, 0, 1);
+
         _btnLookupPatients = new Button { Text = "Find Patients", Width = 104, Height = 28 };
         _btnLookupOrders = new Button { Text = "Find Orders", Width = 94, Height = 28 };
         _btnLookupProcedures = new Button { Text = "Find Procedures", Width = 112, Height = 28 };
-        searchBar.Controls.Add(_btnLookupPatients);
-        searchBar.Controls.Add(MakeSpacer(4));
-        searchBar.Controls.Add(_btnLookupOrders);
-        searchBar.Controls.Add(MakeSpacer(4));
-        searchBar.Controls.Add(_btnLookupProcedures);
-        root.Controls.Add(searchBar, 0, 1);
+        var findBar = new FlowLayoutPanel { Dock = DockStyle.Top, AutoSize = true, WrapContents = false };
+        findBar.Controls.Add(_btnLookupPatients);
+        findBar.Controls.Add(MakeSpacer(4));
+        findBar.Controls.Add(_btnLookupOrders);
+        findBar.Controls.Add(MakeSpacer(4));
+        findBar.Controls.Add(_btnLookupProcedures);
+        root.Controls.Add(findBar, 0, 2);
 
         _dgvLookupPatients = CreateLookupGrid();
         _dgvLookupPatients.Columns.Add(new DataGridViewTextBoxColumn { Name = "PatientId", HeaderText = "Patient ID", DataPropertyName = "PatientId", Width = 90 });
@@ -505,7 +508,7 @@ public partial class MainForm
         _dgvLookupPatients.Columns.Add(new DataGridViewTextBoxColumn { Name = "DateOfBirth", HeaderText = "DOB", DataPropertyName = "DateOfBirth", Width = 90, DefaultCellStyle = new DataGridViewCellStyle { Format = "yyyy-MM-dd" } });
         _dgvLookupPatients.Columns.Add(new DataGridViewTextBoxColumn { Name = "Sex", HeaderText = "Sex", DataPropertyName = "Sex", Width = 50 });
         _dgvLookupPatients.Columns.Add(new DataGridViewTextBoxColumn { Name = "Age", HeaderText = "Age", DataPropertyName = "Age", Width = 50 });
-        root.Controls.Add(_dgvLookupPatients, 0, 2);
+        root.Controls.Add(_dgvLookupPatients, 0, 3);
 
         var applyBar = new FlowLayoutPanel
         {
@@ -524,7 +527,7 @@ public partial class MainForm
         applyBar.Controls.Add(_chkApplyNewStudyUID);
         applyBar.Controls.Add(MakeSpacer(16));
         applyBar.Controls.Add(_btnApplySelectedBoth);
-        root.Controls.Add(applyBar, 0, 3);
+        root.Controls.Add(applyBar, 0, 4);
 
         _dgvLookupOrders = CreateLookupGrid();
         _dgvLookupOrders.Columns.Add(new DataGridViewTextBoxColumn { Name = "AccessionNumber", HeaderText = "Accession", DataPropertyName = "AccessionNumber", Width = 110 });
@@ -535,7 +538,7 @@ public partial class MainForm
         _dgvLookupOrders.Columns.Add(new DataGridViewTextBoxColumn { Name = "ProcedureCode", HeaderText = "Procedure Code", DataPropertyName = "ProcedureCode", Width = 140 });
         _dgvLookupOrders.Columns.Add(new DataGridViewTextBoxColumn { Name = "WorkflowStatus", HeaderText = "Status", DataPropertyName = "WorkflowStatus", Width = 110 });
         _dgvLookupOrders.Columns.Add(new DataGridViewTextBoxColumn { Name = "Gender", HeaderText = "Gender", DataPropertyName = "Gender", Width = 70 });
-        root.Controls.Add(_dgvLookupOrders, 0, 4);
+        root.Controls.Add(_dgvLookupOrders, 0, 5);
 
         return root;
     }
