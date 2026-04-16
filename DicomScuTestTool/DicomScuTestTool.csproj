@@ -28,6 +28,17 @@
     </Content>
   </ItemGroup>
 
+  <!-- SNI.dll is a native library that cannot be bundled into a single-file publish -->
+  <Target Name="CopySniDll" AfterTargets="Publish">
+    <Copy SourceFiles="$(NuGetPackageRoot)microsoft.data.sqlclient.sni\$(MicrosoftDataSqlClientSNIVersion)\runtime\win-x64\native\Microsoft.Data.SqlClient.SNI.dll"
+          DestinationFolder="$(PublishDir)"
+          Condition="Exists('$(NuGetPackageRoot)microsoft.data.sqlclient.sni\$(MicrosoftDataSqlClientSNIVersion)\runtime\win-x64\native\Microsoft.Data.SqlClient.SNI.dll')" />
+    <!-- Fallback: copy from build output runtimes folder -->
+    <Copy SourceFiles="$(OutputPath)runtimes\win-x64\native\Microsoft.Data.SqlClient.SNI.dll"
+          DestinationFolder="$(PublishDir)"
+          Condition="!Exists('$(PublishDir)Microsoft.Data.SqlClient.SNI.dll') And Exists('$(OutputPath)runtimes\win-x64\native\Microsoft.Data.SqlClient.SNI.dll')" />
+  </Target>
+
   <!-- To publish standalone exe: dotnet publish -c Release -r win-x64 -p:SelfContained=true -p:PublishSingleFile=true -->
 
 </Project>
