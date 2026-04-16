@@ -466,10 +466,6 @@ public partial class MainForm
         connectionBar.Controls.Add(MakeSpacer(6));
         _btnLookupTestConnection = new Button { Text = "Test", Width = 64, Height = 26 };
         connectionBar.Controls.Add(_btnLookupTestConnection);
-        connectionBar.Controls.Add(MakeSpacer(8));
-        connectionBar.Controls.Add(MakeLabel("Days:"));
-        _numLookupDays = new NumericUpDown { Minimum = 1, Maximum = 60, Value = 7, Width = 58 };
-        connectionBar.Controls.Add(_numLookupDays);
         root.Controls.Add(connectionBar, 0, 0);
 
         var searchBar = new FlowLayoutPanel
@@ -494,12 +490,16 @@ public partial class MainForm
         _btnLookupPatients = new Button { Text = "Find Patients", Width = 104, Height = 28 };
         _btnLookupOrders = new Button { Text = "Find Orders", Width = 94, Height = 28 };
         _btnLookupProcedures = new Button { Text = "Find Procedures", Width = 112, Height = 28 };
+        _numLookupDays = new NumericUpDown { Minimum = 1, Maximum = 60, Value = 7, Width = 58 };
         var findBar = new FlowLayoutPanel { Dock = DockStyle.Top, AutoSize = true, WrapContents = false };
         findBar.Controls.Add(_btnLookupPatients);
         findBar.Controls.Add(MakeSpacer(4));
         findBar.Controls.Add(_btnLookupOrders);
         findBar.Controls.Add(MakeSpacer(4));
         findBar.Controls.Add(_btnLookupProcedures);
+        findBar.Controls.Add(MakeSpacer(8));
+        findBar.Controls.Add(MakeLabel("Days:"));
+        findBar.Controls.Add(_numLookupDays);
         root.Controls.Add(findBar, 0, 2);
 
         _dgvLookupPatients = CreateLookupGrid();
