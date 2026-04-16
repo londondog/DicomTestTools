@@ -106,13 +106,12 @@ public partial class MainForm
             AccessionNumber = _txtAccession.Text.Trim(),
             StudyDate = _txtStudyDate.Text.Trim(),
             StudyTime = _txtStudyTime.Text.Trim(),
-            StudyDescription = _txtStudyDesc.Text.Trim()
+            StudyDescription = _txtStudyDesc.Text.Trim(),
+            Modality = _cmbModality.SelectedItem?.ToString() ?? ""
         } : null;
 
         var proc = _chkOverrideProcedure.Checked ? new ProcedureSnapshot
         {
-            Modality = _cmbModality.SelectedItem?.ToString() ?? "",
-            ProcedureDescription = _txtProcedureDesc.Text.Trim(),
             StudyUID = _txtStudyUID.Text.Trim(),
             SeriesUID = _txtSeriesUID.Text.Trim(),
             GenerateNewStudyUID = _chkNewStudyUID.Checked,
@@ -249,6 +248,10 @@ public partial class MainForm
         {
             ds.AddOrUpdate(DicomTag.StudyDate, normalizedStudyDate);
             ds.AddOrUpdate(DicomTag.SeriesDate, normalizedStudyDate);
+            ds.AddOrUpdate(DicomTag.ContentDate, normalizedStudyDate);
+            ds.AddOrUpdate(DicomTag.AcquisitionDate, normalizedStudyDate);
+            ds.AddOrUpdate(DicomTag.InstanceCreationDate, normalizedStudyDate);
+            ds.AddOrUpdate(new DicomTag(0x0040, 0x0244), normalizedStudyDate); // Performed Procedure Step Start Date
         }
 
         var normalizedStudyTime = NormalizeStudyTime(demo.StudyTime);
@@ -256,9 +259,60 @@ public partial class MainForm
         {
             ds.AddOrUpdate(DicomTag.StudyTime, normalizedStudyTime);
             ds.AddOrUpdate(DicomTag.SeriesTime, normalizedStudyTime);
+            ds.AddOrUpdate(DicomTag.ContentTime, normalizedStudyTime);
+            ds.AddOrUpdate(DicomTag.AcquisitionTime, normalizedStudyTime);
+            ds.AddOrUpdate(DicomTag.InstanceCreationTime, normalizedStudyTime);
         }
 
+        if (!string.IsNullOrWhiteSpace(normalizedStudyDate))
+        {
+            // Keep time stable when only date is overridden by reusing best available existing time.
+            var normalizedAcquisitionTime = GetAcquisitionTimeForDateOverride(ds, normalizedStudyTime);
+            if (!string.IsNullOrWhiteSpace(normalizedAcquisitionTime))
+            {
+                ds.AddOrUpdate(DicomTag.AcquisitionDateTime, normalizedStudyDate + normalizedAcquisitionTime);
+            }
+
+            // (0040,0253) Performed Procedure Step ID — stored as yyyyMMdd.HHmmss
+            var timeForStepId = GetAcquisitionTimeForDateOverride(ds, normalizedStudyTime);
+            var stepId = string.IsNullOrWhiteSpace(timeForStepId)
+                ? normalizedStudyDate
+                : $"{normalizedStudyDate}.{timeForStepId}";
+            ds.AddOrUpdate(new DicomTag(0x0040, 0x0253), stepId);
+        }
+
+        if (!string.IsNullOrWhiteSpace(demo.Modality)) ds.AddOrUpdate(DicomTag.Modality, demo.Modality);
         if (!string.IsNullOrWhiteSpace(demo.StudyDescription)) ds.AddOrUpdate(DicomTag.StudyDescription, demo.StudyDescription);
+    }
+
+    private static string GetAcquisitionTimeForDateOverride(DicomDataset ds, string normalizedStudyTime)
+    {
+        if (!string.IsNullOrWhiteSpace(normalizedStudyTime))
+            return normalizedStudyTime;
+
+        foreach (var tag in new[] { DicomTag.AcquisitionTime, DicomTag.ContentTime, DicomTag.SeriesTime, DicomTag.StudyTime })
+        {
+            if (ds.TryGetSingleValue(tag, out string existingTime))
+            {
+                var normalizedExistingTime = NormalizeStudyTime(existingTime);
+                if (!string.IsNullOrWhiteSpace(normalizedExistingTime))
+                    return normalizedExistingTime;
+            }
+        }
+
+        if (ds.TryGetSingleValue(DicomTag.AcquisitionDateTime, out string acquisitionDateTime))
+        {
+            var dtDigits = Regex.Replace(acquisitionDateTime, "[^0-9]", "");
+            if (dtDigits.Length >= 12)
+            {
+                var hhmmss = dtDigits.Length >= 14 ? dtDigits.Substring(8, 6) : dtDigits.Substring(8, 4);
+                var normalizedFromDt = NormalizeStudyTime(hhmmss);
+                if (!string.IsNullOrWhiteSpace(normalizedFromDt))
+                    return normalizedFromDt;
+            }
+        }
+
+        return "";
     }
 
     private static string NormalizeStudyTime(string value)
@@ -313,12 +367,6 @@ public partial class MainForm
         Dictionary<string, string> studyMap, Dictionary<string, string> seriesMap)
     {
         if (proc == null) return;
-
-        if (!string.IsNullOrWhiteSpace(proc.Modality))
-            ds.AddOrUpdate(DicomTag.Modality, proc.Modality);
-
-        if (!string.IsNullOrWhiteSpace(proc.ProcedureDescription))
-            ds.AddOrUpdate(DicomTag.PerformedProcedureStepDescription, proc.ProcedureDescription);
 
         // Study UID: explicit value takes priority, then generate-new flag
         if (!string.IsNullOrWhiteSpace(proc.StudyUID))
