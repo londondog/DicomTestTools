@@ -4,9 +4,24 @@ using FellowOakDicom.Network;
 using FellowOakDicom.Network.Client;
 using Microsoft.Extensions.Logging;
 
-Console.WriteLine("=== DICOM SCP Test Tool  v1.0  —  by George Hutchings ===");
+Console.WriteLine("=== DICOM SCP Test Tool  v1.0.1  —  by George Hutchings ===");
 Console.WriteLine($"Started at: {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
 Console.WriteLine();
+
+if (args.Any(a => string.Equals(a, "--about", StringComparison.OrdinalIgnoreCase)))
+{
+    Console.WriteLine("DICOM SCP Test Tool");
+    Console.WriteLine("Version 1");
+    Console.WriteLine("Made by George Hutchings");
+    return;
+}
+
+if (args.Any(a => string.Equals(a, "--help", StringComparison.OrdinalIgnoreCase) || string.Equals(a, "-h", StringComparison.OrdinalIgnoreCase)))
+{
+    Console.WriteLine("Usage: DicomScpTestTool [port] [aet] [storage_folder] [-v|--verbose] [--about]");
+    Console.WriteLine("  --about   Show version and author information and exit.");
+    return;
+}
 
 // Parse command line arguments
 var port = 11112;
@@ -53,7 +68,7 @@ Console.WriteLine("    - Enable 'Storage Commitment' in destination settings");
 Console.WriteLine("    - This SCP will validate each received instance");
 Console.WriteLine("    - N-EVENT-REPORT sent to SCU at localhost:11113 after 1 second");
 Console.WriteLine();
-Console.WriteLine("Usage: DicomScpTestTool [port] [aet] [storage_folder] [-v|--verbose]");
+Console.WriteLine("Usage: DicomScpTestTool [port] [aet] [storage_folder] [-v|--verbose] [--about]");
 Console.WriteLine();
 Console.WriteLine("Press Ctrl+C to stop...");
 Console.WriteLine(new string('=', 80));
@@ -229,6 +244,9 @@ public class CStoreProvider : DicomService, IDicomServiceProvider, IDicomCStoreP
         var patientName = dataset.GetSingleValueOrDefault(DicomTag.PatientName, "unknown");
         var modality = dataset.GetSingleValueOrDefault(DicomTag.Modality, "unknown");
         var studyDate = dataset.GetSingleValueOrDefault(DicomTag.StudyDate, "unknown");
+        var studyTime = dataset.GetSingleValueOrDefault(DicomTag.StudyTime, "unknown");
+        var seriesDate = dataset.GetSingleValueOrDefault(DicomTag.SeriesDate, "unknown");
+        var seriesTime = dataset.GetSingleValueOrDefault(DicomTag.SeriesTime, "unknown");
         var instanceNumber = dataset.GetSingleValueOrDefault(DicomTag.InstanceNumber, "unknown");
         var seriesNumber = dataset.GetSingleValueOrDefault(DicomTag.SeriesNumber, "unknown");
 
@@ -241,9 +259,12 @@ public class CStoreProvider : DicomService, IDicomServiceProvider, IDicomCStoreP
         Console.WriteLine($"  Study:");
         Console.WriteLine($"    UID:            {studyUID}");
         Console.WriteLine($"    Date:           {studyDate}");
+        Console.WriteLine($"    Time:           {studyTime}");
         Console.WriteLine($"  Series:");
         Console.WriteLine($"    UID:            {seriesUID}");
         Console.WriteLine($"    Number:         {seriesNumber}");
+        Console.WriteLine($"    Date:           {seriesDate}");
+        Console.WriteLine($"    Time:           {seriesTime}");
         Console.WriteLine($"    Modality:       {modality}");
         Console.WriteLine($"  Instance:");
         Console.WriteLine($"    SOP UID:        {sopInstanceUID}");

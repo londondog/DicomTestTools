@@ -92,7 +92,7 @@ public partial class MainForm : Form
             Path.GetDirectoryName(Application.ExecutablePath) ?? ".",
             "dicomcfind_settings.json");
 
-        Text = "DICOM C-FIND Test Tool  v1.0  —  by George Hutchings";
+        Text = "DICOM C-FIND Test Tool  v1.0.1  —  by George Hutchings";
         Size = new Size(1200, 880);
         MinimumSize = new Size(1000, 720);
         StartPosition = FormStartPosition.CenterScreen;
@@ -240,6 +240,15 @@ public partial class MainForm : Form
     }
 
     private static string QuoteCsv(string s) => $"\"{s.Replace("\"", "\"\"")}\"";
+
+    private void ShowAboutDialog()
+    {
+        MessageBox.Show(
+            "DICOM C-FIND Test Tool\nVersion 1\nMade by George Hutchings",
+            "About",
+            MessageBoxButtons.OK,
+            MessageBoxIcon.Information);
+    }
 
     private static Label MakeLabel(string text) => new Label
     {
