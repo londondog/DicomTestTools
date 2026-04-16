@@ -63,14 +63,104 @@ public partial class MainForm
             Dock = DockStyle.Fill
         };
 
+        var settings = new ToolStripMenuItem("Settings");
+        var dbSettings = new ToolStripMenuItem("DB Connection...");
+        dbSettings.Click += (_, _) => ShowDbSettingsDialog();
+        settings.DropDownItems.Add(dbSettings);
+
         var help = new ToolStripMenuItem("Help");
         var about = new ToolStripMenuItem("About");
         about.Click += (_, _) => ShowAboutDialog();
         help.DropDownItems.Add(about);
 
+        menu.Items.Add(settings);
         menu.Items.Add(help);
         MainMenuStrip = menu;
         return menu;
+    }
+
+    private void ShowDbSettingsDialog()
+    {
+        var dlg = new Form
+        {
+            Text = "DB Connection Settings",
+            Size = new Size(540, 160),
+            MinimumSize = new Size(440, 160),
+            MaximumSize = new Size(900, 160),
+            StartPosition = FormStartPosition.CenterParent,
+            FormBorderStyle = FormBorderStyle.FixedDialog,
+            MaximizeBox = false,
+            MinimizeBox = false
+        };
+
+        var tbl = new TableLayoutPanel
+        {
+            Dock = DockStyle.Fill,
+            ColumnCount = 2,
+            RowCount = 3,
+            Padding = new Padding(10, 8, 10, 8)
+        };
+        tbl.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+        tbl.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f));
+        tbl.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+        tbl.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+        tbl.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+
+        tbl.Controls.Add(new Label { Text = "Connection String:", AutoSize = true, TextAlign = ContentAlignment.MiddleRight, Padding = new Padding(0, 4, 6, 0) }, 0, 0);
+        var txtConn = new TextBox { Dock = DockStyle.Fill, Text = _txtLookupConnectionString.Text };
+        tbl.Controls.Add(txtConn, 1, 0);
+
+        var chkCert = new CheckBox { Text = "Trust Server Certificate", AutoSize = true, Checked = _chkLookupTrustServerCert.Checked, Padding = new Padding(0, 4, 0, 0) };
+        tbl.Controls.Add(chkCert, 1, 1);
+
+        var btnFlow = new FlowLayoutPanel { AutoSize = true, FlowDirection = FlowDirection.LeftToRight, Padding = new Padding(0, 4, 0, 0) };
+        var btnTest = new Button { Text = "Test Connection", Width = 110, Height = 26 };
+        var btnOk = new Button { Text = "OK", Width = 72, Height = 26, BackColor = Color.FromArgb(0, 120, 212), ForeColor = Color.White, FlatStyle = FlatStyle.Flat };
+        var btnCancel = new Button { Text = "Cancel", Width = 72, Height = 26 };
+        btnFlow.Controls.Add(btnTest);
+        btnFlow.Controls.Add(MakeSpacer(8));
+        btnFlow.Controls.Add(btnOk);
+        btnFlow.Controls.Add(MakeSpacer(4));
+        btnFlow.Controls.Add(btnCancel);
+        tbl.Controls.Add(btnFlow, 1, 2);
+
+        chkCert.CheckedChanged += (_, _) =>
+        {
+            try
+            {
+                var b = new Microsoft.Data.SqlClient.SqlConnectionStringBuilder(txtConn.Text) { TrustServerCertificate = chkCert.Checked };
+                txtConn.Text = b.ConnectionString;
+            }
+            catch { }
+        };
+
+        btnTest.Click += async (_, _) =>
+        {
+            btnTest.Enabled = false;
+            try
+            {
+                await using var conn = new Microsoft.Data.SqlClient.SqlConnection(txtConn.Text.Trim());
+                await conn.OpenAsync();
+                MessageBox.Show("Connection successful.", "DB Connection", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Connection failed:\n{ex.Message}", "DB Connection", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally { btnTest.Enabled = true; }
+        };
+
+        btnOk.Click += (_, _) =>
+        {
+            _txtLookupConnectionString.Text = txtConn.Text.Trim();
+            _chkLookupTrustServerCert.Checked = chkCert.Checked;
+            dlg.DialogResult = DialogResult.OK;
+        };
+
+        btnCancel.Click += (_, _) => dlg.DialogResult = DialogResult.Cancel;
+
+        dlg.Controls.Add(tbl);
+        dlg.ShowDialog(this);
     }
 
     private GroupBox BuildConnectionGroup()
@@ -427,46 +517,27 @@ public partial class MainForm
 
     private Control BuildLookupTab()
     {
+        // Hidden controls — hold connection settings, not shown in the tab
+        _txtLookupConnectionString = new TextBox
+        {
+            Visible = false,
+            Text = "Data Source=localhost;Initial Catalog=Medcon;Integrated Security=True;TrustServerCertificate=True;"
+        };
+        _chkLookupTrustServerCert = new CheckBox { Visible = false, Checked = true };
+        _btnLookupTestConnection = new Button { Visible = false };
+
         var root = new TableLayoutPanel
         {
             Dock = DockStyle.Fill,
-            RowCount = 6,
+            RowCount = 5,
             ColumnCount = 1,
             Padding = new Padding(2)
         };
-        root.RowStyles.Add(new RowStyle(SizeType.AutoSize));  // connection
-        root.RowStyles.Add(new RowStyle(SizeType.AutoSize));  // search fields
-        root.RowStyles.Add(new RowStyle(SizeType.AutoSize));  // find buttons
-        root.RowStyles.Add(new RowStyle(SizeType.Percent, 44f));  // patient grid
-        root.RowStyles.Add(new RowStyle(SizeType.AutoSize));  // apply bar
-        root.RowStyles.Add(new RowStyle(SizeType.Percent, 56f));  // orders grid
-
-        var connectionBar = new FlowLayoutPanel
-        {
-            Dock = DockStyle.Top,
-            AutoSize = true,
-            WrapContents = false
-        };
-        connectionBar.Controls.Add(MakeLabel("Connection String:"));
-        _txtLookupConnectionString = new TextBox
-        {
-            Width = 460,
-            PlaceholderText = "Data Source=localhost;Initial Catalog=Medcon;Integrated Security=True;TrustServerCertificate=True;",
-            Text = "Data Source=localhost;Initial Catalog=Medcon;Integrated Security=True;TrustServerCertificate=True;"
-        };
-        connectionBar.Controls.Add(_txtLookupConnectionString);
-        connectionBar.Controls.Add(MakeSpacer(6));
-        _chkLookupTrustServerCert = new CheckBox
-        {
-            Text = "Trust Server Cert",
-            AutoSize = true,
-            Checked = true
-        };
-        connectionBar.Controls.Add(_chkLookupTrustServerCert);
-        connectionBar.Controls.Add(MakeSpacer(6));
-        _btnLookupTestConnection = new Button { Text = "Test", Width = 64, Height = 26 };
-        connectionBar.Controls.Add(_btnLookupTestConnection);
-        root.Controls.Add(connectionBar, 0, 0);
+        root.RowStyles.Add(new RowStyle(SizeType.AutoSize));       // search fields
+        root.RowStyles.Add(new RowStyle(SizeType.AutoSize));       // find buttons
+        root.RowStyles.Add(new RowStyle(SizeType.Percent, 44f));   // patient grid
+        root.RowStyles.Add(new RowStyle(SizeType.AutoSize));       // apply bar
+        root.RowStyles.Add(new RowStyle(SizeType.Percent, 56f));   // orders grid
 
         var searchBar = new FlowLayoutPanel
         {
@@ -485,7 +556,7 @@ public partial class MainForm
         searchBar.Controls.Add(MakeLabel("Accession:"));
         _txtLookupAccession = new TextBox { Width = 110, PlaceholderText = "Accession No." };
         searchBar.Controls.Add(_txtLookupAccession);
-        root.Controls.Add(searchBar, 0, 1);
+        root.Controls.Add(searchBar, 0, 0);
 
         _btnLookupPatients = new Button { Text = "Find Patients", Width = 104, Height = 28 };
         _btnLookupOrders = new Button { Text = "Find Orders", Width = 94, Height = 28 };
@@ -500,7 +571,7 @@ public partial class MainForm
         findBar.Controls.Add(MakeSpacer(8));
         findBar.Controls.Add(MakeLabel("Days:"));
         findBar.Controls.Add(_numLookupDays);
-        root.Controls.Add(findBar, 0, 2);
+        root.Controls.Add(findBar, 0, 1);
 
         _dgvLookupPatients = CreateLookupGrid();
         _dgvLookupPatients.Columns.Add(new DataGridViewTextBoxColumn { Name = "PatientId", HeaderText = "Patient ID", DataPropertyName = "PatientId", Width = 90 });
@@ -508,7 +579,7 @@ public partial class MainForm
         _dgvLookupPatients.Columns.Add(new DataGridViewTextBoxColumn { Name = "DateOfBirth", HeaderText = "DOB", DataPropertyName = "DateOfBirth", Width = 90, DefaultCellStyle = new DataGridViewCellStyle { Format = "yyyy-MM-dd" } });
         _dgvLookupPatients.Columns.Add(new DataGridViewTextBoxColumn { Name = "Sex", HeaderText = "Sex", DataPropertyName = "Sex", Width = 50 });
         _dgvLookupPatients.Columns.Add(new DataGridViewTextBoxColumn { Name = "Age", HeaderText = "Age", DataPropertyName = "Age", Width = 50 });
-        root.Controls.Add(_dgvLookupPatients, 0, 3);
+        root.Controls.Add(_dgvLookupPatients, 0, 2);
 
         var applyBar = new FlowLayoutPanel
         {
@@ -527,7 +598,7 @@ public partial class MainForm
         applyBar.Controls.Add(_chkApplyNewStudyUID);
         applyBar.Controls.Add(MakeSpacer(16));
         applyBar.Controls.Add(_btnApplySelectedBoth);
-        root.Controls.Add(applyBar, 0, 4);
+        root.Controls.Add(applyBar, 0, 3);
 
         _dgvLookupOrders = CreateLookupGrid();
         _dgvLookupOrders.Columns.Add(new DataGridViewTextBoxColumn { Name = "AccessionNumber", HeaderText = "Accession", DataPropertyName = "AccessionNumber", Width = 110 });
@@ -538,7 +609,7 @@ public partial class MainForm
         _dgvLookupOrders.Columns.Add(new DataGridViewTextBoxColumn { Name = "ProcedureCode", HeaderText = "Procedure Code", DataPropertyName = "ProcedureCode", Width = 140 });
         _dgvLookupOrders.Columns.Add(new DataGridViewTextBoxColumn { Name = "WorkflowStatus", HeaderText = "Status", DataPropertyName = "WorkflowStatus", Width = 110 });
         _dgvLookupOrders.Columns.Add(new DataGridViewTextBoxColumn { Name = "Gender", HeaderText = "Gender", DataPropertyName = "Gender", Width = 70 });
-        root.Controls.Add(_dgvLookupOrders, 0, 5);
+        root.Controls.Add(_dgvLookupOrders, 0, 4);
 
         return root;
     }
