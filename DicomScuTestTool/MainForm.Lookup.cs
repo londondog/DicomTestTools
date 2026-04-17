@@ -400,7 +400,10 @@ public partial class MainForm
         if (_chkApplyNewStudyUID.Checked)
         {
             _chkOverrideProcedure.Checked = true;
+            _txtStudyUID.Text = DicomUIDGenerator.GenerateNew();
+            _txtSeriesUID.Text = DicomUIDGenerator.GenerateNew();
             _chkNewStudyUID.Checked = true;
+            _chkNewSeriesUID.Checked = true;
         }
 
         Log($"[LOOKUP] Applied order {order.AccessionNumber} to override fields.", Color.LightGreen);
