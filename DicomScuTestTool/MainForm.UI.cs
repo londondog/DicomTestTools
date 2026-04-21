@@ -36,10 +36,8 @@ public partial class MainForm
         };
         tabs.TabPages.Add(new TabPage("Demographics and Study") { Padding = new Padding(4) });
         tabs.TabPages[0].Controls.Add(BuildDemographicsGroup());
-        tabs.TabPages.Add(new TabPage("Procedure") { Padding = new Padding(4) });
-        tabs.TabPages[1].Controls.Add(BuildProcedureGroup());
         tabs.TabPages.Add(new TabPage("Lookup") { Padding = new Padding(4) });
-        tabs.TabPages[2].Controls.Add(BuildLookupTab());
+        tabs.TabPages[1].Controls.Add(BuildLookupTab());
 
         split.Panel2.Controls.Add(tabs);
         outer.Controls.Add(split, 0, 2);
@@ -385,17 +383,23 @@ public partial class MainForm
         seriesUidPanel.Controls.Add(btnNewSeries, 1, 0);
         tbl.Controls.Add(seriesUidPanel, 1, row); row++;
 
-        // UID generation checkboxes
+        // UID generation checkboxes — 2×2 grid
         _chkNewStudyUID = new CheckBox { Text = "Generate new Study UID", AutoSize = true };
-        tbl.RowStyles.Add(new RowStyle(SizeType.AutoSize));
-        tbl.Controls.Add(_chkNewStudyUID, 0, row);
-        tbl.SetColumnSpan(_chkNewStudyUID, 2);
-        row++;
-
         _chkNewSeriesUID = new CheckBox { Text = "Generate new Series UID", AutoSize = true };
+        _chkOverrideProcedure = new CheckBox { Text = "Enable procedure override", AutoSize = true, Font = new Font(Font, FontStyle.Bold) };
+        _chkNewSOPUID = new CheckBox { Text = "Generate new SOP Instance UID (per file)", AutoSize = true, Checked = true };
+
+        var chkGrid = new TableLayoutPanel { ColumnCount = 2, AutoSize = true, Dock = DockStyle.Fill };
+        chkGrid.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50f));
+        chkGrid.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50f));
+        chkGrid.Controls.Add(_chkNewStudyUID, 0, 0);
+        chkGrid.Controls.Add(_chkOverrideProcedure, 1, 0);
+        chkGrid.Controls.Add(_chkNewSeriesUID, 0, 1);
+        chkGrid.Controls.Add(_chkNewSOPUID, 1, 1);
+
         tbl.RowStyles.Add(new RowStyle(SizeType.AutoSize));
-        tbl.Controls.Add(_chkNewSeriesUID, 0, row);
-        tbl.SetColumnSpan(_chkNewSeriesUID, 2);
+        tbl.Controls.Add(chkGrid, 0, row);
+        tbl.SetColumnSpan(chkGrid, 2);
         row++;
 
         tbl.RowStyles.Add(new RowStyle(SizeType.Absolute, 8f));
@@ -416,48 +420,6 @@ public partial class MainForm
         tbl.RowStyles.Add(new RowStyle(SizeType.AutoSize));
         tbl.Controls.Add(btnFlow, 0, row);
         tbl.SetColumnSpan(btnFlow, 2);
-
-        grp.Controls.Add(tbl);
-        return grp;
-    }
-
-    private GroupBox BuildProcedureGroup()
-    {
-        var grp = new GroupBox
-        {
-            Text = "Procedure Override",
-            Dock = DockStyle.Fill,
-            Padding = new Padding(8, 4, 8, 6)
-        };
-
-        var tbl = new TableLayoutPanel
-        {
-            Dock = DockStyle.Fill,
-            ColumnCount = 2,
-            AutoSize = false,
-            Padding = new Padding(0, 2, 0, 0)
-        };
-        tbl.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 110f));
-        tbl.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f));
-
-        int row = 0;
-
-        _chkOverrideProcedure = new CheckBox
-        {
-            Text = "Enable procedure override",
-            Checked = false,
-            AutoSize = true,
-            Font = new Font(Font, FontStyle.Bold)
-        };
-        tbl.RowStyles.Add(new RowStyle(SizeType.AutoSize));
-        tbl.Controls.Add(_chkOverrideProcedure, 0, row);
-        tbl.SetColumnSpan(_chkOverrideProcedure, 2);
-        row++;
-
-        _chkNewSOPUID = new CheckBox { Text = "Generate new SOP Instance UID (per file)", AutoSize = true, Checked = true };
-        tbl.RowStyles.Add(new RowStyle(SizeType.AutoSize));
-        tbl.Controls.Add(_chkNewSOPUID, 0, row);
-        tbl.SetColumnSpan(_chkNewSOPUID, 2);
 
         grp.Controls.Add(tbl);
         return grp;
