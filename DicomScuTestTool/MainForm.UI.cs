@@ -357,6 +357,47 @@ public partial class MainForm
         _cmbModality.Items.AddRange(new object[] { "", "CR", "CT", "DX", "ECG", "EP", "ES", "MG", "MR", "NM", "OPT", "OT", "PT", "RF", "SC", "US", "XA" });
         AddField("Modality:", _cmbModality);
 
+        AddSeparator("UIDs");
+
+        // Study UID row with Generate button
+        tbl.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+        tbl.Controls.Add(new Label { Text = "Study UID:", Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleRight, Padding = new Padding(0, 0, 4, 0) }, 0, row);
+        var studyUidPanel = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 2, AutoSize = true };
+        studyUidPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f));
+        studyUidPanel.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+        _txtStudyUID = new TextBox { PlaceholderText = "Leave blank to keep original", Dock = DockStyle.Fill };
+        var btnNewStudy = new Button { Text = "New", Width = 40, Height = 22 };
+        btnNewStudy.Click += (_, _) => _txtStudyUID.Text = DicomUIDGenerator.GenerateNew();
+        studyUidPanel.Controls.Add(_txtStudyUID, 0, 0);
+        studyUidPanel.Controls.Add(btnNewStudy, 1, 0);
+        tbl.Controls.Add(studyUidPanel, 1, row); row++;
+
+        // Series UID row with Generate button
+        tbl.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+        tbl.Controls.Add(new Label { Text = "Series UID:", Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleRight, Padding = new Padding(0, 0, 4, 0) }, 0, row);
+        var seriesUidPanel = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 2, AutoSize = true };
+        seriesUidPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f));
+        seriesUidPanel.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+        _txtSeriesUID = new TextBox { PlaceholderText = "Leave blank to keep original", Dock = DockStyle.Fill };
+        var btnNewSeries = new Button { Text = "New", Width = 40, Height = 22 };
+        btnNewSeries.Click += (_, _) => _txtSeriesUID.Text = DicomUIDGenerator.GenerateNew();
+        seriesUidPanel.Controls.Add(_txtSeriesUID, 0, 0);
+        seriesUidPanel.Controls.Add(btnNewSeries, 1, 0);
+        tbl.Controls.Add(seriesUidPanel, 1, row); row++;
+
+        // UID generation checkboxes
+        _chkNewStudyUID = new CheckBox { Text = "Generate new Study UID", AutoSize = true };
+        tbl.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+        tbl.Controls.Add(_chkNewStudyUID, 0, row);
+        tbl.SetColumnSpan(_chkNewStudyUID, 2);
+        row++;
+
+        _chkNewSeriesUID = new CheckBox { Text = "Generate new Series UID", AutoSize = true };
+        tbl.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+        tbl.Controls.Add(_chkNewSeriesUID, 0, row);
+        tbl.SetColumnSpan(_chkNewSeriesUID, 2);
+        row++;
+
         tbl.RowStyles.Add(new RowStyle(SizeType.Absolute, 8f));
         tbl.Controls.Add(new Label(), 0, row); row++;
 
@@ -411,48 +452,6 @@ public partial class MainForm
         tbl.RowStyles.Add(new RowStyle(SizeType.AutoSize));
         tbl.Controls.Add(_chkOverrideProcedure, 0, row);
         tbl.SetColumnSpan(_chkOverrideProcedure, 2);
-        row++;
-
-        // Study UID row with Generate button
-        tbl.RowStyles.Add(new RowStyle(SizeType.AutoSize));
-        tbl.Controls.Add(new Label { Text = "Study UID:", Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleRight, Padding = new Padding(0, 0, 4, 0) }, 0, row);
-        var studyUidPanel = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 2, AutoSize = true };
-        studyUidPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f));
-        studyUidPanel.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
-        _txtStudyUID = new TextBox { PlaceholderText = "Leave blank to keep original", Dock = DockStyle.Fill };
-        var btnNewStudy = new Button { Text = "New", Width = 40, Height = 22 };
-        btnNewStudy.Click += (_, _) => _txtStudyUID.Text = DicomUIDGenerator.GenerateNew();
-        studyUidPanel.Controls.Add(_txtStudyUID, 0, 0);
-        studyUidPanel.Controls.Add(btnNewStudy, 1, 0);
-        tbl.Controls.Add(studyUidPanel, 1, row); row++;
-
-        // Series UID row with Generate button
-        tbl.RowStyles.Add(new RowStyle(SizeType.AutoSize));
-        tbl.Controls.Add(new Label { Text = "Series UID:", Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleRight, Padding = new Padding(0, 0, 4, 0) }, 0, row);
-        var seriesUidPanel = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 2, AutoSize = true };
-        seriesUidPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f));
-        seriesUidPanel.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
-        _txtSeriesUID = new TextBox { PlaceholderText = "Leave blank to keep original", Dock = DockStyle.Fill };
-        var btnNewSeries = new Button { Text = "New", Width = 40, Height = 22 };
-        btnNewSeries.Click += (_, _) => _txtSeriesUID.Text = DicomUIDGenerator.GenerateNew();
-        seriesUidPanel.Controls.Add(_txtSeriesUID, 0, 0);
-        seriesUidPanel.Controls.Add(btnNewSeries, 1, 0);
-        tbl.Controls.Add(seriesUidPanel, 1, row); row++;
-
-        tbl.RowStyles.Add(new RowStyle(SizeType.Absolute, 6f));
-        tbl.Controls.Add(new Label(), 0, row); row++;
-
-        // UID generation checkboxes
-        _chkNewStudyUID = new CheckBox { Text = "Generate new Study UID", AutoSize = true };
-        tbl.RowStyles.Add(new RowStyle(SizeType.AutoSize));
-        tbl.Controls.Add(_chkNewStudyUID, 0, row);
-        tbl.SetColumnSpan(_chkNewStudyUID, 2);
-        row++;
-
-        _chkNewSeriesUID = new CheckBox { Text = "Generate new Series UID", AutoSize = true };
-        tbl.RowStyles.Add(new RowStyle(SizeType.AutoSize));
-        tbl.Controls.Add(_chkNewSeriesUID, 0, row);
-        tbl.SetColumnSpan(_chkNewSeriesUID, 2);
         row++;
 
         _chkNewSOPUID = new CheckBox { Text = "Generate new SOP Instance UID (per file)", AutoSize = true, Checked = true };
