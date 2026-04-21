@@ -84,7 +84,7 @@ public partial class MainForm : Form
             Path.GetDirectoryName(Application.ExecutablePath) ?? ".",
             "dicomscu_settings.json");
 
-        Text = "DICOM SCU Test Tool  v1.0.1  —  by George Hutchings";
+        Text = "DICOM SCU Test Tool  v1.0.2  —  by George Hutchings";
         Size = new Size(1160, 820);
         MinimumSize = new Size(960, 700);
         StartPosition = FormStartPosition.CenterScreen;

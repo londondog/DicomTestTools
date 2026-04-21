@@ -4,7 +4,7 @@ using FellowOakDicom.Network;
 using FellowOakDicom.Network.Client;
 using Microsoft.Extensions.Logging;
 
-Console.WriteLine("=== DICOM SCP Test Tool  v1.0.1  —  by George Hutchings ===");
+Console.WriteLine("=== DICOM SCP Test Tool  v1.0.2  —  by George Hutchings ===");
 Console.WriteLine($"Started at: {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
 Console.WriteLine();
 

@@ -92,7 +92,7 @@ public partial class MainForm : Form
             Path.GetDirectoryName(Application.ExecutablePath) ?? ".",
             "dicomcfind_settings.json");
 
-        Text = "DICOM C-FIND Test Tool  v1.0.1  —  by George Hutchings";
+        Text = "DICOM C-FIND Test Tool  v1.0.2  —  by George Hutchings";
         Size = new Size(1200, 880);
         MinimumSize = new Size(1000, 720);
         StartPosition = FormStartPosition.CenterScreen;

@@ -384,9 +384,9 @@ public partial class MainForm
         tbl.Controls.Add(seriesUidPanel, 1, row); row++;
 
         // UID generation checkboxes — 2×2 grid
-        _chkNewStudyUID = new CheckBox { Text = "Generate new Study UID", AutoSize = true };
-        _chkNewSeriesUID = new CheckBox { Text = "Generate new Series UID", AutoSize = true };
-        _chkOverrideProcedure = new CheckBox { Text = "Enable procedure override", AutoSize = true, Font = new Font(Font, FontStyle.Bold) };
+        _chkNewStudyUID = new CheckBox { Text = "Generate new Study UID", AutoSize = true, Checked = true };
+        _chkNewSeriesUID = new CheckBox { Text = "Generate new Series UID", AutoSize = true, Checked = true };
+        _chkOverrideProcedure = new CheckBox { Text = "Enable procedure override", AutoSize = true, Checked = true, Font = new Font(Font, FontStyle.Bold) };
         _chkNewSOPUID = new CheckBox { Text = "Generate new SOP Instance UID (per file)", AutoSize = true, Checked = true };
 
         var chkGrid = new TableLayoutPanel { ColumnCount = 2, AutoSize = true, Dock = DockStyle.Fill };

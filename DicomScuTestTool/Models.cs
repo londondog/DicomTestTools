@@ -47,7 +47,7 @@ public class AppSettings
     public string CallingAET { get; set; } = "SCU_TEST";
     public string CalledAET { get; set; } = "ANY-SCP";
     public bool OverrideDemographics { get; set; } = true;
-    public bool OverrideProcedure { get; set; } = false;
+    public bool OverrideProcedure { get; set; } = true;
     public string LookupConnectionString { get; set; } = "";
     public int LookupRangeDays { get; set; } = 7;
     public bool LookupTrustServerCertificate { get; set; } = true;
