@@ -110,6 +110,8 @@ public partial class MainForm
             Modality = _cmbModality.SelectedItem?.ToString() ?? ""
         } : null;
 
+        var customTags = GetCustomTagOverrides();
+
         var proc = _chkOverrideProcedure.Checked ? new ProcedureSnapshot
         {
             StudyUID = _txtStudyUID.Text.Trim(),
@@ -170,6 +172,7 @@ public partial class MainForm
                 // Modify in-place — pixel data and transfer syntax fully loaded into memory
                 ApplyDemographics(dcm.Dataset, demo);
                 ApplyProcedure(dcm.Dataset, entry, proc, studyUidMap, seriesUidMap);
+                ApplyCustomTags(dcm.Dataset, customTags);
 
                 var tcs = new TaskCompletionSource<bool>();
                 var capturedEntry = entry;
@@ -416,6 +419,8 @@ public partial class MainForm
             _numLookupDays.Value = Math.Clamp(s.LookupRangeDays, (int)_numLookupDays.Minimum, (int)_numLookupDays.Maximum);
             _chkLookupTrustServerCert.Checked = s.LookupTrustServerCertificate;
             UpdateLookupTrustServerCertificateInConnectionString();
+            if (s.CustomTagOverrides?.Count > 0)
+                LoadCustomTagOverrides(s.CustomTagOverrides);
         }
         catch { /* ignore corrupt settings */ }
     }
@@ -434,7 +439,8 @@ public partial class MainForm
                 OverrideProcedure = _chkOverrideProcedure.Checked,
                 LookupConnectionString = _txtLookupConnectionString.Text.Trim(),
                 LookupRangeDays = (int)_numLookupDays.Value,
-                LookupTrustServerCertificate = _chkLookupTrustServerCert.Checked
+                LookupTrustServerCertificate = _chkLookupTrustServerCert.Checked,
+                CustomTagOverrides = GetCustomTagOverrides()
             };
             File.WriteAllText(_settingsFile, JsonSerializer.Serialize(s, new JsonSerializerOptions { WriteIndented = true }));
         }

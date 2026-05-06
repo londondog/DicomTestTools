@@ -38,6 +38,8 @@ public partial class MainForm
         tabs.TabPages[0].Controls.Add(BuildDemographicsGroup());
         tabs.TabPages.Add(new TabPage("Lookup") { Padding = new Padding(4) });
         tabs.TabPages[1].Controls.Add(BuildLookupTab());
+        tabs.TabPages.Add(new TabPage("Tag Overrides") { Padding = new Padding(4) });
+        tabs.TabPages[2].Controls.Add(BuildCustomTagsTab());
 
         split.Panel2.Controls.Add(tabs);
         outer.Controls.Add(split, 0, 2);
@@ -572,6 +574,92 @@ public partial class MainForm
         _dgvLookupOrders.Columns.Add(new DataGridViewTextBoxColumn { Name = "Gender", HeaderText = "Gender", DataPropertyName = "Gender", Width = 70 });
         root.Controls.Add(_dgvLookupOrders, 0, 4);
 
+        return root;
+    }
+
+    private Control BuildCustomTagsTab()
+    {
+        var root = new TableLayoutPanel
+        {
+            Dock = DockStyle.Fill,
+            RowCount = 3,
+            ColumnCount = 1,
+            Padding = new Padding(2)
+        };
+        root.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+        root.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+        root.RowStyles.Add(new RowStyle(SizeType.Percent, 100f));
+
+        var notice = new Label
+        {
+            Text = "⚠  These tag overrides are applied LAST and will replace any value set by Demographics or Procedure overrides.",
+            Dock = DockStyle.Fill,
+            AutoSize = false,
+            Height = 32,
+            TextAlign = ContentAlignment.MiddleLeft,
+            ForeColor = Color.Orange,
+            Font = new Font(Font, FontStyle.Bold),
+            Padding = new Padding(2, 4, 0, 0)
+        };
+        root.Controls.Add(notice, 0, 0);
+
+        var btnBar = new FlowLayoutPanel { AutoSize = true, FlowDirection = FlowDirection.LeftToRight, WrapContents = false };
+        _btnCustomTagAdd = new Button { Text = "Add Row", Width = 76, Height = 26 };
+        _btnCustomTagRemove = new Button { Text = "Remove", Width = 70, Height = 26 };
+        _btnCustomTagClear = new Button { Text = "Clear All", Width = 70, Height = 26 };
+        btnBar.Controls.Add(_btnCustomTagAdd);
+        btnBar.Controls.Add(MakeSpacer(4));
+        btnBar.Controls.Add(_btnCustomTagRemove);
+        btnBar.Controls.Add(MakeSpacer(4));
+        btnBar.Controls.Add(_btnCustomTagClear);
+        root.Controls.Add(btnBar, 0, 1);
+
+        _dgvCustomTags = new DataGridView
+        {
+            Dock = DockStyle.Fill,
+            ReadOnly = false,
+            MultiSelect = false,
+            SelectionMode = DataGridViewSelectionMode.FullRowSelect,
+            AutoGenerateColumns = false,
+            AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill,
+            AllowUserToAddRows = false,
+            AllowUserToDeleteRows = false,
+            AllowUserToResizeRows = false,
+            RowHeadersVisible = false,
+            BackgroundColor = Color.FromArgb(30, 30, 30),
+            GridColor = Color.FromArgb(60, 60, 60),
+            DefaultCellStyle = new DataGridViewCellStyle
+            {
+                BackColor = Color.FromArgb(30, 30, 30),
+                ForeColor = Color.LightGray,
+                SelectionBackColor = Color.FromArgb(0, 90, 160),
+                SelectionForeColor = Color.White
+            },
+            ColumnHeadersDefaultCellStyle = new DataGridViewCellStyle
+            {
+                BackColor = Color.FromArgb(45, 45, 45),
+                ForeColor = Color.LightGray,
+                Font = new Font(Font, FontStyle.Bold)
+            },
+            EnableHeadersVisualStyles = false
+        };
+
+        _dgvCustomTags.Columns.Add(new DataGridViewTextBoxColumn
+        {
+            Name = "Tag", HeaderText = "Tag  (e.g. 0010,0010)", Width = 160,
+            FillWeight = 20, ToolTipText = "Group,Element — e.g. 0010,0010"
+        });
+        _dgvCustomTags.Columns.Add(new DataGridViewTextBoxColumn
+        {
+            Name = "VR", HeaderText = "VR", Width = 50,
+            FillWeight = 8, ToolTipText = "Value Representation — e.g. LO, CS, DA (leave blank to auto-detect)"
+        });
+        _dgvCustomTags.Columns.Add(new DataGridViewTextBoxColumn
+        {
+            Name = "Value", HeaderText = "Value", FillWeight = 72
+        });
+
+        root.Controls.Add(_dgvCustomTags, 0, 2);
         return root;
     }
 

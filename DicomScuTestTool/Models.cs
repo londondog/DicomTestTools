@@ -51,6 +51,14 @@ public class AppSettings
     public string LookupConnectionString { get; set; } = "";
     public int LookupRangeDays { get; set; } = 7;
     public bool LookupTrustServerCertificate { get; set; } = true;
+    public List<CustomTagOverride> CustomTagOverrides { get; set; } = new();
+}
+
+public class CustomTagOverride
+{
+    public string Tag { get; set; } = "";
+    public string VR { get; set; } = "";
+    public string Value { get; set; } = "";
 }
 
 public class PatientLookupResult

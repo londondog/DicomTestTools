@@ -62,6 +62,12 @@ public partial class MainForm : Form
     private DataGridView _dgvLookupPatients = null!;
     private DataGridView _dgvLookupOrders = null!;
 
+    // ── Custom Tag Overrides ────────────────────────────────────
+    private DataGridView _dgvCustomTags = null!;
+    private Button _btnCustomTagAdd = null!;
+    private Button _btnCustomTagRemove = null!;
+    private Button _btnCustomTagClear = null!;
+
     // ── Actions ─────────────────────────────────────────────────
     private Button _btnSendAll = null!;
     private Button _btnSendSelected = null!;
@@ -117,6 +123,9 @@ public partial class MainForm : Form
             ApplySelectedPatientToDemographics();
             ApplySelectedOrderToDemographics();
         };
+        _btnCustomTagAdd.Click += (_, _) => AddCustomTagRow();
+        _btnCustomTagRemove.Click += (_, _) => RemoveSelectedCustomTagRow();
+        _btnCustomTagClear.Click += (_, _) => _dgvCustomTags.Rows.Clear();
         _btnSendAll.Click += async (_, _) => await SendAsync(sendAll: true);
         _btnSendSelected.Click += async (_, _) => await SendAsync(sendAll: false);
         _btnCancelSend.Click += (_, _) => _cts?.Cancel();
