@@ -664,17 +664,23 @@ public partial class MainForm
 
         _dgvCustomTags.Columns.Add(new DataGridViewTextBoxColumn
         {
-            Name = "Tag", HeaderText = "Tag  (e.g. 0010,0010)", Width = 160,
-            FillWeight = 20, ToolTipText = "Group,Element — e.g. 0010,0010"
+            Name = "Tag", HeaderText = "Tag  (e.g. 0010,0010)", Width = 120,
+            FillWeight = 15, ToolTipText = "Group,Element — e.g. 0010,0010"
         });
         _dgvCustomTags.Columns.Add(new DataGridViewTextBoxColumn
         {
-            Name = "VR", HeaderText = "VR", Width = 50,
-            FillWeight = 8, ToolTipText = "Value Representation — e.g. LO, CS, DA (leave blank to auto-detect)"
+            Name = "VR", HeaderText = "VR", Width = 44,
+            FillWeight = 6, ToolTipText = "Value Representation — e.g. LO, CS, DA (leave blank to auto-detect)"
         });
         _dgvCustomTags.Columns.Add(new DataGridViewTextBoxColumn
         {
-            Name = "Value", HeaderText = "Value", FillWeight = 72
+            Name = "Description", HeaderText = "Description", Width = 180,
+            FillWeight = 25, ReadOnly = true,
+            DefaultCellStyle = new DataGridViewCellStyle { ForeColor = Color.FromArgb(160, 160, 160) }
+        });
+        _dgvCustomTags.Columns.Add(new DataGridViewTextBoxColumn
+        {
+            Name = "Value", HeaderText = "Value", FillWeight = 54
         });
 
         root.Controls.Add(_dgvCustomTags, 0, 2);

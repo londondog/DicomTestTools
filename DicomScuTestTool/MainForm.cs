@@ -90,7 +90,7 @@ public partial class MainForm : Form
             Path.GetDirectoryName(Application.ExecutablePath) ?? ".",
             "dicomscu_settings.json");
 
-        Text = "DICOM SCU Test Tool  v1.0.2  —  by George Hutchings";
+        Text = $"DICOM SCU Test Tool  v{System.Reflection.Assembly.GetExecutingAssembly().GetName().Version?.ToString(3)}  —  by George Hutchings";
         Size = new Size(1160, 820);
         MinimumSize = new Size(960, 700);
         StartPosition = FormStartPosition.CenterScreen;
@@ -129,7 +129,15 @@ public partial class MainForm : Form
         _btnSendAll.Click += async (_, _) => await SendAsync(sendAll: true);
         _btnSendSelected.Click += async (_, _) => await SendAsync(sendAll: false);
         _btnCancelSend.Click += (_, _) => _cts?.Cancel();
-        _lvFiles.SelectedIndexChanged += (_, _) => UpdateButtonStates();
+        _lvFiles.SelectedIndexChanged += (_, _) =>
+        {
+            UpdateButtonStates();
+            if (_lvFiles.SelectedItems.Count == 1)
+            {
+                var entry = _files.FirstOrDefault(f => f.ListViewItem == _lvFiles.SelectedItems[0]);
+                if (entry != null) PopulateTagsFromFile(entry.FilePath);
+            }
+        };
         _chkOverride.CheckedChanged += (_, _) => SetDemographicsEnabled(_chkOverride.Checked);
         _chkOverrideProcedure.CheckedChanged += (_, _) => SetProcedureEnabled(_chkOverrideProcedure.Checked);
         Shown += async (_, _) => await CheckProductionEnvironmentAsync();
@@ -178,7 +186,7 @@ public partial class MainForm : Form
     private void ShowAboutDialog()
     {
         MessageBox.Show(
-            "DICOM SCU Test Tool\nVersion 1\nMade by George Hutchings",
+            $"DICOM SCU Test Tool\nVersion {System.Reflection.Assembly.GetExecutingAssembly().GetName().Version?.ToString(3)}\nMade by George Hutchings",
             "About",
             MessageBoxButtons.OK,
             MessageBoxIcon.Information);
