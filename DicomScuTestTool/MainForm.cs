@@ -132,6 +132,7 @@ public partial class MainForm : Form
         _lvFiles.SelectedIndexChanged += (_, _) => UpdateButtonStates();
         _chkOverride.CheckedChanged += (_, _) => SetDemographicsEnabled(_chkOverride.Checked);
         _chkOverrideProcedure.CheckedChanged += (_, _) => SetProcedureEnabled(_chkOverrideProcedure.Checked);
+        Shown += async (_, _) => await CheckProductionEnvironmentAsync();
         FormClosing += (_, _) => { SaveSettings(); _cts?.Cancel(); Environment.Exit(0); };
     }
 
