@@ -32,7 +32,10 @@ public partial class MainForm
 
         var tabs = new TabControl
         {
-            Dock = DockStyle.Fill
+            Dock = DockStyle.Fill,
+            DrawMode = TabDrawMode.OwnerDrawFixed,
+            ItemSize = new Size(0, 28),
+            Padding = new Point(12, 4)
         };
         tabs.TabPages.Add(new TabPage("Demographics and Study") { Padding = new Padding(4) });
         tabs.TabPages[0].Controls.Add(BuildDemographicsGroup());
@@ -40,6 +43,21 @@ public partial class MainForm
         tabs.TabPages[1].Controls.Add(BuildLookupTab());
         tabs.TabPages.Add(new TabPage("Tag Overrides") { Padding = new Padding(4) });
         tabs.TabPages[2].Controls.Add(BuildCustomTagsTab());
+
+        tabs.DrawItem += (_, e) =>
+        {
+            var page = tabs.TabPages[e.Index];
+            bool selected = tabs.SelectedIndex == e.Index;
+            var bgColor = selected ? Color.FromArgb(0, 120, 212) : Color.FromArgb(55, 55, 55);
+            var fgColor = Color.White;
+            using var bgBrush = new SolidBrush(bgColor);
+            e.Graphics.FillRectangle(bgBrush, e.Bounds);
+            var font = new Font(tabs.Font, selected ? FontStyle.Bold : FontStyle.Regular);
+            var textRect = new RectangleF(e.Bounds.X, e.Bounds.Y + 4, e.Bounds.Width, e.Bounds.Height);
+            using var fgBrush = new SolidBrush(fgColor);
+            using var sf = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center };
+            e.Graphics.DrawString(page.Text, font, fgBrush, textRect, sf);
+        };
 
         split.Panel2.Controls.Add(tabs);
         outer.Controls.Add(split, 0, 2);

@@ -47,7 +47,7 @@ internal sealed class ProductionWarningDialog : Form
         {
             Text = "You are connected to a PRODUCTION system.\n" +
                    "Changes made here will affect live patient data.\n\n" +
-                   "Enter the password to continue.",
+                   "Enter the password to continue (Password: Warning123!).",
             Location = new Point(16, 16),
             Size = new Size(420, 72),
             ForeColor = Color.FromArgb(180, 60, 0),

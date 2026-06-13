@@ -24,6 +24,17 @@ public partial class MainForm
         {
             Log("[ENV] Test environment confirmed.", Color.LightGreen);
         }
+        else
+        {
+            Log("[ENV] Environment could not be confirmed — prompting for authorisation.", Color.OrangeRed);
+            using var dlg = new ProductionWarningDialog();
+            if (dlg.ShowDialog(this) != DialogResult.OK)
+            {
+                Application.Exit();
+                return;
+            }
+            Log("[ENV] Unconfirmed environment access authorised.", Color.OrangeRed);
+        }
     }
 
     private async Task<int?> GetEnvironmentIndexAsync()

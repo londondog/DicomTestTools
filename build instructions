@@ -1,0 +1,12 @@
+dotnet publish "c:/repos/DicomTestTools/DicomCFindTestTool/DicomCFindTestTool.csproj" -c Release -r win-x64 -p:SelfContained=false -p:PublishSingleFile=true -o "C:/dicom test tool/dicom cfind"
+
+dotnet publish "c:/repos/DicomTestTools/DicomScpTestTool/DicomScpTestTool.csproj" -c Release -r win-x64 -p:SelfContained=false -p:PublishSingleFile=true -o "C:/dicom test tool/store scp"
+
+dotnet publish "c:/repos/DicomTestTools/DicomScuTestTool/DicomScuTestTool.csproj" -c Release -r win-x64 -p:SelfContained=false -p:PublishSingleFile=true -o "C:/dicom test tool/storescu"
+
+
+dotnet publish ".\DicomCFindTestTool/DicomCFindTestTool.csproj" -c Release -r win-x64 -p:SelfContained=false -p:PublishSingleFile=true -o "C:/dicom test tool/dicom cfind"
+
+dotnet publish ".\DicomScpTestTool/DicomScpTestTool.csproj" -c Release -r win-x64 -p:SelfContained=false -p:PublishSingleFile=true -o "C:/dicom test tool/store scp"
+
+dotnet publish ".\DicomScuTestTool/DicomScuTestTool.csproj" -c Release -r win-x64 -p:SelfContained=false -p:PublishSingleFile=true -o "C:/dicom test tool/storescu"
