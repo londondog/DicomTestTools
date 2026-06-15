@@ -10,3 +10,4 @@ dotnet publish ".\DicomCFindTestTool/DicomCFindTestTool.csproj" -c Release -r wi
 dotnet publish ".\DicomScpTestTool/DicomScpTestTool.csproj" -c Release -r win-x64 -p:SelfContained=false -p:PublishSingleFile=true -o "C:/dicom test tool/store scp"
 
 dotnet publish ".\DicomScuTestTool/DicomScuTestTool.csproj" -c Release -r win-x64 -p:SelfContained=false -p:PublishSingleFile=true -o "C:/dicom test tool/storescu"
+dotnet publish ".\Dicom.Viewer/Dicom.Viewer.csproj" -c Release -r win-x64 -p:SelfContained=false -o "C:/dicom test tool/viewer"

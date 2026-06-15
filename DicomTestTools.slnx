@@ -2,4 +2,5 @@
   <Project Path="DicomCFindTestTool/DicomCFindTestTool.csproj" />
   <Project Path="DicomScpTestTool/DicomScpTestTool.csproj" />
   <Project Path="DicomScuTestTool/DicomScuTestTool.csproj" />
+  <Project Path="Dicom.Viewer/Dicom.Viewer.csproj" />
 </Solution>
