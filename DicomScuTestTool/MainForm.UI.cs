@@ -264,7 +264,8 @@ public partial class MainForm
             AllowColumnReorder = true
         };
         _lvFiles.Columns.Add("#", 32);
-        _lvFiles.Columns.Add("Filename", 180);
+        _lvFiles.Columns.Add("Filename", 160);
+        _lvFiles.Columns.Add("Ext", 44);
         _lvFiles.Columns.Add("Patient Name", 130);
         _lvFiles.Columns.Add("Patient ID", 90);
         _lvFiles.Columns.Add("Accession", 100);
@@ -474,10 +475,13 @@ public partial class MainForm
         tbl.RowStyles.Add(new RowStyle(SizeType.AutoSize));
         tbl.RowStyles.Add(new RowStyle(SizeType.Percent, 100f));
 
-        var btnBar = new FlowLayoutPanel { FlowDirection = FlowDirection.LeftToRight, AutoSize = true };
+        var btnBar = new FlowLayoutPanel { FlowDirection = FlowDirection.LeftToRight, AutoSize = true, Padding = new Padding(0, 2, 0, 2) };
         var btnClearLog = new Button { Text = "Clear Log", Width = 72, Height = 22 };
         btnClearLog.Click += (_, _) => _rtbLog.Clear();
+        _chkShowDebug = new CheckBox { Text = "Show debug", AutoSize = true, Checked = true, TextAlign = ContentAlignment.MiddleLeft };
         btnBar.Controls.Add(btnClearLog);
+        btnBar.Controls.Add(MakeSpacer(12));
+        btnBar.Controls.Add(_chkShowDebug);
         tbl.Controls.Add(btnBar, 0, 0);
 
         _rtbLog = new RichTextBox

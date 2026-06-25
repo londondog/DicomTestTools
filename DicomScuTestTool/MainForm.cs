@@ -77,12 +77,15 @@ public partial class MainForm : Form
 
     // ── Log ─────────────────────────────────────────────────────
     private RichTextBox _rtbLog = null!;
+    private CheckBox _chkShowDebug = null!;
 
     // ── State ───────────────────────────────────────────────────
     private readonly List<DicomFileEntry> _files = new();
     private CancellationTokenSource? _cts;
     private readonly string _settingsFile;
     private bool _sending;
+    private int _sortColumn = -1;
+    private bool _sortDescending;
 
     public MainForm()
     {
@@ -129,6 +132,7 @@ public partial class MainForm : Form
         _btnSendAll.Click += async (_, _) => await SendAsync(sendAll: true);
         _btnSendSelected.Click += async (_, _) => await SendAsync(sendAll: false);
         _btnCancelSend.Click += (_, _) => _cts?.Cancel();
+        _lvFiles.ColumnClick += LvFiles_ColumnClick;
         _lvFiles.SelectedIndexChanged += (_, _) =>
         {
             UpdateButtonStates();
@@ -156,7 +160,7 @@ public partial class MainForm : Form
     {
         if (entry.ListViewItem == null) return;
         if (InvokeRequired) { Invoke(() => SetFileStatus(entry, status, color)); return; }
-        entry.ListViewItem.SubItems[7].Text = status;
+        entry.ListViewItem.SubItems[8].Text = status;
         entry.ListViewItem.ForeColor = color;
     }
 

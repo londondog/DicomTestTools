@@ -152,21 +152,20 @@ public partial class MainForm
                     continue;
                 }
 
-                // Debug: log what was loaded
                 var originalFileSize = new FileInfo(entry.FilePath).Length;
                 var hasPixelData = dcm.Dataset.Contains(DicomTag.PixelData);
                 var transferSyntax = dcm.Dataset.InternalTransferSyntax?.UID?.Name ?? "unknown";
-                var sopClass = dcm.Dataset.GetSingleValueOrDefault(DicomTag.SOPClassUID, "unknown");
-                Log($"[DBG]  File: {Path.GetFileName(entry.FilePath)}", Color.Gray);
-                Log($"[DBG]  Original size: {originalFileSize:N0} bytes", Color.Gray);
-                Log($"[DBG]  Has pixel data: {hasPixelData}", hasPixelData ? Color.Gray : Color.OrangeRed);
-                Log($"[DBG]  Transfer syntax: {transferSyntax}", Color.Gray);
-                Log($"[DBG]  SOP Class: {sopClass}", Color.Gray);
+                var sopClassUidStr = dcm.Dataset.GetSingleValueOrDefault(DicomTag.SOPClassUID, "unknown");
+                var sopClass = DicomUID.Parse(sopClassUidStr)?.Name ?? sopClassUidStr;
 
-                if (hasPixelData)
+                if (_chkShowDebug.Checked)
                 {
-                    var pixelDataItem = dcm.Dataset.GetDicomItem<DicomItem>(DicomTag.PixelData);
-                    Log($"[DBG]  Pixel data type: {pixelDataItem?.GetType().Name ?? "null"}", Color.Gray);
+                    Log($"[DBG]  {Path.GetFileName(entry.FilePath)} — {originalFileSize:N0} bytes — {sopClass} — {transferSyntax}", Color.Gray);
+                    if (hasPixelData)
+                    {
+                        var pixelDataItem = dcm.Dataset.GetDicomItem<DicomItem>(DicomTag.PixelData);
+                        Log($"[DBG]  Pixel data: {pixelDataItem?.GetType().Name ?? "null"}", Color.Gray);
+                    }
                 }
 
                 // Modify in-place — pixel data and transfer syntax fully loaded into memory
@@ -177,6 +176,8 @@ public partial class MainForm
                 var tcs = new TaskCompletionSource<bool>();
                 var capturedEntry = entry;
                 var capturedTcs = tcs;
+                var capturedSopClass = sopClass;
+                var capturedTransferSyntax = transferSyntax;
 
                 // Pass DicomFile directly — no temp file, no re-read from disk
                 var request = new DicomCStoreRequest(dcm);
@@ -187,7 +188,7 @@ public partial class MainForm
                         ok ? Color.LimeGreen : Color.OrangeRed));
                     Invoke(() => Log(ok
                         ? $"[OK]   {Path.GetFileName(capturedEntry.FilePath)}"
-                        : $"[FAIL] {Path.GetFileName(capturedEntry.FilePath)}: {resp.Status}",
+                        : $"[FAIL] {Path.GetFileName(capturedEntry.FilePath)} [{capturedSopClass} / {capturedTransferSyntax}]: SCP — {resp.Status}",
                         ok ? Color.LimeGreen : Color.OrangeRed));
                     capturedTcs.SetResult(ok);
                 };

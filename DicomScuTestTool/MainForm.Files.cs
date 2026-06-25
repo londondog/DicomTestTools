@@ -65,6 +65,7 @@ public partial class MainForm
 
                 var lvi = new ListViewItem((_files.Count + 1).ToString());
                 lvi.SubItems.Add(Path.GetFileName(path));
+                lvi.SubItems.Add(Path.GetExtension(path));
                 lvi.SubItems.Add(entry.PatientName);
                 lvi.SubItems.Add(entry.PatientID);
                 lvi.SubItems.Add(entry.AccessionNumber);
@@ -124,5 +125,46 @@ public partial class MainForm
     {
         _lblFileCount.Text = $"{_files.Count} file(s)";
         UpdateButtonStates();
+    }
+
+    private static readonly string[] _lvColumnNames =
+        { "#", "Filename", "Ext", "Patient Name", "Patient ID", "Accession", "Study Date", "Modality", "Status" };
+
+    internal void LvFiles_ColumnClick(object? sender, ColumnClickEventArgs e)
+    {
+        if (_sortColumn == e.Column)
+            _sortDescending = !_sortDescending;
+        else
+        {
+            _sortColumn = e.Column;
+            _sortDescending = false;
+        }
+
+        for (int i = 0; i < _lvFiles.Columns.Count; i++)
+            _lvFiles.Columns[i].Text = _lvColumnNames[i] + (i == _sortColumn ? (_sortDescending ? " ▼" : " ▲") : "");
+
+        _lvFiles.ListViewItemSorter = new ListViewSorter(_sortColumn, _sortDescending);
+    }
+
+    private sealed class ListViewSorter : System.Collections.IComparer
+    {
+        private readonly int _col;
+        private readonly bool _desc;
+
+        public ListViewSorter(int col, bool desc) { _col = col; _desc = desc; }
+
+        public int Compare(object? x, object? y)
+        {
+            var a = (ListViewItem)x!;
+            var b = (ListViewItem)y!;
+            string sa = _col < a.SubItems.Count ? a.SubItems[_col].Text : "";
+            string sb = _col < b.SubItems.Count ? b.SubItems[_col].Text : "";
+
+            int result = _col == 0 && int.TryParse(sa, out int ia) && int.TryParse(sb, out int ib)
+                ? ia.CompareTo(ib)
+                : string.Compare(sa, sb, StringComparison.OrdinalIgnoreCase);
+
+            return _desc ? -result : result;
+        }
     }
 }
