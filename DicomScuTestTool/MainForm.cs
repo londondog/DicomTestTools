@@ -99,8 +99,10 @@ public partial class MainForm : Form
         StartPosition = FormStartPosition.CenterScreen;
 
         BuildUI();
-        LoadSettings();
         WireEvents();
+        LoadSettings();
+        SetDemographicsEnabled(_chkOverride.Checked);
+        SetProcedureEnabled(_chkOverrideProcedure.Checked);
     }
 
     private void WireEvents()

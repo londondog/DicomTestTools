@@ -10,7 +10,7 @@ public partial class MainForm
         using var dlg = new OpenFileDialog
         {
             Title = "Select DICOM files",
-            Filter = "DICOM files (*.dcm)|*.dcm|All files (*.*)|*.*",
+            Filter = "DICOM files (*.dcm;*.vid;*.img)|*.dcm;*.vid;*.img|All files (*.*)|*.*",
             Multiselect = true
         };
         if (dlg.ShowDialog() == DialogResult.OK)

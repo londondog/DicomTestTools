@@ -169,9 +169,10 @@ public partial class MainForm
                 }
 
                 // Modify in-place — pixel data and transfer syntax fully loaded into memory
+                // Custom tags first so demographics/procedure overrides win over auto-populated file tags
+                ApplyCustomTags(dcm.Dataset, customTags);
                 ApplyDemographics(dcm.Dataset, demo);
                 ApplyProcedure(dcm.Dataset, entry, proc, studyUidMap, seriesUidMap);
-                ApplyCustomTags(dcm.Dataset, customTags);
 
                 var tcs = new TaskCompletionSource<bool>();
                 var capturedEntry = entry;
